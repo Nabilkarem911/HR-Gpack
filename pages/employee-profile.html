@@ -75,127 +75,127 @@
 </div>
 
 <div id="employee-modal"
-    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto opacity-0 transition-opacity duration-300">
-    <div class="ant-modal relative" id="employee-modal-content">
-        <div class="ant-modal-content">
-            <!-- Modal Header -->
-            <div class="ant-modal-header">
-                <h3 id="modal-title">إضافة موظف جديد</h3>
-                <button onclick="closeEmployeeModal()">
-                    <i class="fa-solid fa-times text-lg"></i>
-                </button>
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden"
+        id="employee-modal-content">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50">
+            <h3 id="modal-title" class="font-bold text-lg text-slate-800">إضافة موظف جديد</h3>
+            <button type="button" onclick="closeEmployeeModal()"
+                class="text-slate-400 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body / Form -->
+        <form id="employee-form" class="p-5 overflow-y-auto flex-1">
+            <input type="hidden" id="emp-id">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">رقم الإقامة / الهوية</label>
+                    <input type="text" id="emp-iqama" placeholder="مثال: 245..."
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الجنسية</label>
+                    <input type="text" id="emp-nationality" placeholder="مثال: مصري"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">المهنة في الإقامة</label>
+                    <input type="text" id="emp-iqama-profession" placeholder="مثال: عامل عادي"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">رقم الموظف (يُولد تلقائياً)</label>
+                    <input type="text" id="emp-code" disabled placeholder="يتم توليده عند الحفظ"
+                        class="w-full bg-slate-100 border border-slate-200 rounded-lg px-4 py-2 focus:outline-none text-slate-500 font-mono">
+                </div>
             </div>
 
-            <!-- Modal Body / Form -->
-            <form id="employee-form" class="ant-modal-body">
-                <input type="hidden" id="emp-id">
-
-                <div
-                    class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">رقم الإقامة / الهوية</label>
-                        <input type="text" id="emp-iqama" placeholder="مثال: 245..."
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الجنسية</label>
-                        <input type="text" id="emp-nationality" placeholder="مثال: مصري"
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">المهنة في الإقامة</label>
-                        <input type="text" id="emp-iqama-profession" placeholder="مثال: عامل عادي"
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">رقم الموظف (يُولد تلقائياً)</label>
-                        <input type="text" id="emp-code" disabled placeholder="يتم توليده عند الحفظ"
-                            class="w-full bg-slate-100 border border-slate-200 rounded-lg px-4 py-2 focus:outline-none text-slate-500 font-mono">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الاسم الأول *</label>
-                        <input type="text" id="emp-first-name" required
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الاسم الأخير *</label>
-                        <input type="text" id="emp-last-name" required
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">البريد الإلكتروني *</label>
-                        <input type="email" id="emp-email" required
-                            class="w-full text-left border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                            dir="ltr">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">رقم الهاتف</label>
-                        <input type="tel" id="emp-phone"
-                            class="w-full border text-left border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-                            dir="ltr">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">المسمى الوظيفي</label>
-                        <input type="text" id="emp-position"
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الراتب الأساسي *</label>
-                        <div class="relative">
-                            <input type="number" id="emp-basic-salary" required min="0" step="0.01"
-                                class="w-full border border-slate-200 rounded-lg px-4 py-2 pl-12 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                            <span class="absolute left-4 top-2 text-slate-400">ر.س</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">تاريخ التعيين *</label>
-                        <input type="date" id="emp-hire-date" required
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-right">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الحالة</label>
-                        <select id="emp-status"
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                            <option value="active">نشط</option>
-                            <option value="inactive">غير نشط</option>
-                            <option value="on_leave">في إجازة</option>
-                            <option value="terminated">مفصول/مستقيل</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="mb-5">
-                    <label class="block text-sm font-medium text-slate-700 mb-1">المنشأة التابع لها</label>
-                    <select id="emp-company-id" required
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الاسم الأول *</label>
+                    <input type="text" id="emp-first-name" required
                         class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
-                        <option value="">-- اختر المنشأة --</option>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الاسم الأخير *</label>
+                    <input type="text" id="emp-last-name" required
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">البريد الإلكتروني *</label>
+                    <input type="email" id="emp-email" required
+                        class="w-full text-left border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                        dir="ltr">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">رقم الهاتف</label>
+                    <input type="tel" id="emp-phone"
+                        class="w-full border text-left border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                        dir="ltr">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">المسمى الوظيفي</label>
+                    <input type="text" id="emp-position"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الراتب الأساسي *</label>
+                    <div class="relative">
+                        <input type="number" id="emp-basic-salary" required min="0" step="0.01"
+                            class="w-full border border-slate-200 rounded-lg px-4 py-2 pl-12 pr-4 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        <span class="absolute left-4 top-2 text-slate-400">ر.س</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">تاريخ التعيين *</label>
+                    <input type="date" id="emp-hire-date" required
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-right">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الحالة</label>
+                    <select id="emp-status"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="active">نشط</option>
+                        <option value="inactive">غير نشط</option>
+                        <option value="on_leave">في إجازة</option>
+                        <option value="terminated">مفصول/مستقيل</option>
                     </select>
                 </div>
+            </div>
 
-                <!-- Modal Footer -->
-                <div class="mt-8 flex justify-end gap-3">
-                    <button type="button" onclick="closeEmployeeModal()"
-                        class="px-5 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors font-medium">الغاء</button>
-                    <button type="submit" id="save-employee-btn"
-                        class="px-5 py-2 rounded-lg text-white bg-primary hover:bg-blue-600 transition-colors flex items-center gap-2 font-medium">
-                        <i class="fa-solid fa-save"></i> حفظ البيانات
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div class="mb-5">
+                <label class="block text-sm font-medium text-slate-700 mb-1">المنشأة التابع لها</label>
+                <select id="emp-company-id" required
+                    class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- اختر المنشأة --</option>
+                </select>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-8 flex justify-end gap-3">
+                <button type="button" onclick="closeEmployeeModal()"
+                    class="px-5 py-2 rounded-lg text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors font-medium">الغاء</button>
+                <button type="submit" id="save-employee-btn"
+                    class="px-5 py-2 rounded-lg text-white bg-primary hover:bg-blue-600 transition-colors flex items-center gap-2 font-medium">
+                    <i class="fa-solid fa-save"></i> حفظ البيانات
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 </div>
 
 <script>
@@ -208,8 +208,20 @@
 
     // Open/Close Modal Functions
     function openEmployeeModal(isEdit = false, employee = null) {
+        // Move modal to body to overcome parent overflow constraints
+        if (modal.parentNode !== document.body) {
+            document.body.appendChild(modal);
+        }
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
+
+        // Lock background scrolling on main-content container
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.style.overflow = 'hidden';
+        }
+
         // small timeout for animation to kick in
         setTimeout(() => {
             modal.classList.remove('opacity-0');
@@ -246,6 +258,13 @@
     function closeEmployeeModal() {
         modal.classList.add('opacity-0');
         modalContent.classList.add('scale-95');
+
+        // Restore background scrolling on main-content container
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.style.overflow = 'auto';
+        }
+
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');

@@ -1,5 +1,43 @@
 <div class="space-y-6">
-    <!-- Navigation Tabs -->
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
+        <!-- Card 1: Pending Leaves & Loans -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+            <div
+                class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 font-medium">طلبات معلقة</p>
+                <h4 class="text-2xl font-bold text-slate-800" id="stat-pending">0</h4>
+            </div>
+        </div>
+        <!-- Card 2: Total Active Loans -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+            <div
+                class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-money-bill-transfer"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 font-medium">إجمالي مديونيات السلف النشطة</p>
+                <h4 class="text-2xl font-bold text-slate-800" id="stat-loans">0.00 <span
+                        class="text-sm font-normal text-slate-400">ر.س</span></h4>
+            </div>
+        </div>
+        <!-- Card 3: Approved Leaves this month -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4">
+            <div
+                class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500 font-medium">إجازات مقبولة (الشهر الحالي)</p>
+                <h4 class="text-2xl font-bold text-slate-800" id="stat-leaves">0</h4>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs & Actions -->
     <div
         class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div class="flex gap-2 bg-slate-100 p-1 rounded-lg">
@@ -38,88 +76,156 @@
 </div>
 
 <!-- Modal for New Request -->
-<div id="request-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
-    <div class="ant-modal relative">
-        <div class="ant-modal-content">
-            <div class="ant-modal-header">
-                <h3 id="modal-req-title">تقديم طلب جديد</h3>
-                <button onclick="closeRequestModal()">
-                    <i class="fa-solid fa-times text-lg"></i>
-                </button>
-            </div>
-            <div class="ant-modal-body">
-                <form id="request-form" class="space-y-4">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-slate-700 mb-1">الموظف *</label>
-                        <select id="req-emp-id" required
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary"></select>
-                    </div>
+<div id="request-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md md:max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
+        <div class="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50">
+            <h3 id="modal-req-title" class="font-bold text-lg text-slate-800">تقديم طلب جديد</h3>
+            <button type="button" onclick="closeRequestModal()"
+                class="text-slate-400 hover:text-red-500 transition-colors">
+                <i class="fa-solid fa-times text-lg"></i>
+            </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1">
+            <form id="request-form" class="space-y-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الموظف *</label>
+                    <select id="req-emp-id" required
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary"></select>
 
-                    <!-- Dynamic Fields Based on Tab -->
-                    <div id="leave-fields" class="space-y-4 hidden">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">نوع الإجازة *</label>
-                            <select id="req-leave-type"
-                                class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary">
-                                <option value="annual">سنوية</option>
-                                <option value="sick">مرضية</option>
-                                <option value="unpaid">بدون راتب</option>
-                                <option value="emergency">طارئة</option>
-                            </select>
+                    <!-- Advanced Warning Area for Loans -->
+                    <div id="loan-warning"
+                        class="hidden mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-700 text-sm items-center gap-2 font-medium">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="loan-warning-text"></span>
+                    </div>
+                </div>
+
+                <!-- Dynamic Fields Based on Tab -->
+                <div id="leave-fields" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">نوع الإجازة *</label>
+                        <select id="req-leave-type"
+                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary">
+                            <option value="annual">سنوية</option>
+                            <option value="sick">مرضية</option>
+                            <option value="unpaid">بدون راتب</option>
+                            <option value="emergency">طارئة</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">من تاريخ *</label>
+                            <input type="date" id="req-leave-start"
+                                class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">من تاريخ *</label>
-                                <input type="date" id="req-leave-start"
-                                    class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
-                            </div>
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">إلى تاريخ *</label>
-                                <input type="date" id="req-leave-end"
-                                    class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
-                            </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">إلى تاريخ *</label>
+                            <input type="date" id="req-leave-end"
+                                class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
                         </div>
                     </div>
+                </div>
 
-                    <div id="loan-fields" class="space-y-4 hidden">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المطلوب (ر.س) *</label>
-                            <input type="number" id="req-loan-amount" min="1" step="0.01"
+                <div id="loan-fields" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المطلوب (ر.س) *</label>
+                        <input type="number" id="req-loan-amount" min="1" step="0.01"
+                            class="w-full text-left border border-slate-200 rounded-lg px-4 py-2">
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-slate-700 mb-1">عدد أشهر التقسيط *</label>
+                            <input type="number" id="req-loan-months" min="1" value="1"
                                 class="w-full text-left border border-slate-200 rounded-lg px-4 py-2">
                         </div>
-                        <div class="flex gap-4">
-                            <div class="flex-1">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">عدد أشهر التقسيط *</label>
-                                <input type="number" id="req-loan-months" min="1" value="1"
-                                    class="w-full text-left border border-slate-200 rounded-lg px-4 py-2">
-                            </div>
-                            <div
-                                class="flex-1 bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-center">
-                                <span class="text-xs text-slate-500 mb-1">الخصم الشهري:</span>
-                                <span id="loan-monthly-calc" class="font-bold text-red-500">0.00 ر.س</span>
-                            </div>
+                        <div
+                            class="flex-1 bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-center">
+                            <span class="text-xs text-slate-500 mb-1">الخصم الشهري:</span>
+                            <span id="loan-monthly-calc" class="font-bold text-red-500">0.00 ر.س</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-slate-700 mb-1">السبب / ملاحظات</label>
-                        <textarea id="req-reason" rows="3"
-                            class="w-full border border-slate-200 rounded-lg px-4 py-2"></textarea>
-                    </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">السبب / ملاحظات</label>
+                    <textarea id="req-reason" rows="3"
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2"></textarea>
+                </div>
 
-                    <div class="mt-8 flex justify-end gap-3">
-                        <button type="submit" id="btn-submit-req"
-                            class="px-5 py-2 rounded-lg text-white bg-primary hover:bg-blue-600 transition-colors font-medium">تقديم
-                            الطلب</button>
-                    </div>
-                </form>
-            </div>
+                <div class="mt-8 flex justify-end gap-3 pt-5 border-t border-slate-100">
+                    <button type="submit" id="btn-submit-req"
+                        class="px-5 py-2 rounded-lg text-white bg-primary hover:bg-blue-600 transition-colors font-medium">تقديم
+                        الطلب</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Leave Approval Confirmation Modal -->
+<div id="leave-approval-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden">
+        <div class="p-5 border-b border-slate-100 bg-emerald-50 text-emerald-800">
+            <h3 class="font-bold text-lg"><i class="fa-solid fa-check-circle ml-1"></i> تأكيد قبول الإجازة</h3>
+        </div>
+        <div class="p-6">
+            <input type="hidden" id="leave-approve-id">
+            <label
+                class="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                <input type="checkbox" id="leave-is-paid"
+                    class="w-5 h-5 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" checked>
+                <div class="flex flex-col">
+                    <span class="font-bold text-slate-700 text-sm">إجازة مدفوعة</span>
+                    <span class="text-xs text-slate-500 mt-1 drop-text">إذا تم إيقاف التفعيل، سيتم إشعار نظام الرواتب
+                        لخصم هذه الأيام آلياً.</span>
+                </div>
+            </label>
+        </div>
+        <div class="p-4 border-t border-slate-100 flex gap-2 justify-end bg-slate-50 shrink-0">
+            <button onclick="closeLeaveApproval()"
+                class="px-4 py-2 text-slate-500 hover:bg-slate-200 rounded-lg text-sm font-medium">إلغاء</button>
+            <button onclick="confirmLeaveApproval()"
+                class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-bold">اعتماد
+                الإجازة</button>
+        </div>
+    </div>
+</div>
+
+<!-- Loan Approval Confirmation Modal -->
+<div id="loan-approval-modal"
+    class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden">
+        <div class="p-5 border-b border-slate-100 bg-emerald-50 text-emerald-800">
+            <h3 class="font-bold text-lg"><i class="fa-solid fa-check-circle ml-1"></i> تأكيد قبول السلفة</h3>
+        </div>
+        <div class="p-6">
+            <input type="hidden" id="loan-approve-id">
+            <label
+                class="flex items-center gap-3 cursor-pointer p-3 border border-slate-200 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                <input type="checkbox" id="loan-auto-deduct"
+                    class="w-5 h-5 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" checked>
+                <div class="flex flex-col">
+                    <span class="font-bold text-slate-700 text-sm">تفعيل الخصم الآلي من الراتب</span>
+                    <span class="text-xs text-slate-500 mt-1 drop-text">تفعيل هذا الخيار سيقوم بجدولة القسط الشهري في
+                        مسير الرواتب تلقائياً.</span>
+                </div>
+            </label>
+        </div>
+        <div class="p-4 border-t border-slate-100 flex gap-2 justify-end bg-slate-50 shrink-0">
+            <button onclick="closeLoanApproval()"
+                class="px-4 py-2 text-slate-500 hover:bg-slate-200 rounded-lg text-sm font-medium">إلغاء</button>
+            <button onclick="confirmLoanApproval()"
+                class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm font-bold">اعتماد
+                السلفة</button>
         </div>
     </div>
 </div>
 
 <script>
-    var activeTab = 'leaves'; // 'leaves' or 'loans'
+    var activeTab = 'leaves';
 
     function switchTab(tab) {
         activeTab = tab;
@@ -131,12 +237,19 @@
             btnLeaves.classList.remove('text-slate-500', 'bg-transparent');
             btnLoans.classList.remove('bg-white', 'text-primary', 'shadow-sm');
             btnLoans.classList.add('text-slate-500', 'bg-transparent');
+
+            // Trigger loan warning check to clear it
+            document.getElementById('loan-warning').classList.add('hidden');
             loadFsmData('leaves');
         } else {
             btnLoans.classList.add('bg-white', 'text-primary', 'shadow-sm');
             btnLoans.classList.remove('text-slate-500', 'bg-transparent');
             btnLeaves.classList.remove('bg-white', 'text-primary', 'shadow-sm');
             btnLeaves.classList.add('text-slate-500', 'bg-transparent');
+
+            // Re-trigger loan warning check on active emp just in case
+            const evt = new Event('change');
+            document.getElementById('req-emp-id').dispatchEvent(evt);
             loadFsmData('loans');
         }
     }
@@ -146,13 +259,17 @@
             'pending': '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-bold border border-amber-200">قيد الانتظار <i class="fa-solid fa-hourglass-half"></i></span>',
             'approved': '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold border border-emerald-200">مقبول <i class="fa-solid fa-check"></i></span>',
             'rejected': '<span class="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-bold border border-red-200">مرفوض <i class="fa-solid fa-times"></i></span>',
-            'processed': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold border border-blue-200">تم المعالجة بالراتب <i class="fa-solid fa-money-bill-wave"></i></span>'
+            'processed': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold border border-blue-200">تم المعالجة <i class="fa-solid fa-check-double"></i></span>'
         };
         return statuses[status] || status;
     }
 
     async function loadFsmData(type) {
         if (!window.db) return;
+
+        // Refresh Stats globally alongside lists
+        refreshStats();
+
         const container = document.getElementById('fsm-table-container');
         container.innerHTML = '<div class="p-10 text-center"><div class="animate-spin inline-block w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full"></div></div>';
 
@@ -172,10 +289,10 @@
             }
 
             let html = `<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm"><tr>`;
-            html += `<th class="px-6 py-4 font-semibold w-1/4">الموظف</th>`;
+            html += `<th class="px-6 py-4 font-semibold w-1/4">الموظف / المنشأة</th>`;
 
             if (type === 'leaves') {
-                html += `<th class="px-6 py-4 font-semibold">التفاصيل</th><th class="px-6 py-4 font-semibold text-center">المدة (أيام)</th>`;
+                html += `<th class="px-6 py-4 font-semibold">التفاصيل</th><th class="px-6 py-4 font-semibold text-center">المدة (أيام)</th><th class="px-6 py-4 font-semibold text-center">الدفع</th>`;
             } else {
                 html += `<th class="px-6 py-4 font-semibold">المبلغ المطلوب</th><th class="px-6 py-4 font-semibold text-center">الخصم الشهري</th>`;
             }
@@ -184,7 +301,7 @@
                      <th class="px-6 py-4 font-semibold text-center">القرار</th></tr></thead><tbody class="divide-y divide-slate-100 text-sm">`;
 
             if (filteredData.length === 0) {
-                html += `<tr><td colspan="5" class="text-center py-10 text-slate-500">لا توجد طلبات.</td></tr>`;
+                html += `<tr><td colspan="6" class="text-center py-10 text-slate-500">لا توجد طلبات.</td></tr>`;
             } else {
                 filteredData.forEach(item => {
                     html += `<tr class="hover:bg-slate-50">
@@ -196,10 +313,14 @@
 
                     if (type === 'leaves') {
                         let lTypeMap = { 'annual': 'إجازة سنوية', 'sick': 'إجازة مرضية', 'unpaid': 'بدون راتب', 'emergency': 'طارئة' };
-                        html += `<td class="px-6 py-4"><span class="block font-semibold text-slate-700">${lTypeMap[item.leave_type]}</span><span class="text-xs text-slate-400">من ${item.start_date} إلى ${item.end_date}</span></td>
-                                 <td class="px-6 py-4 text-center font-bold text-primary">${item.total_days}</td>`;
+                        let paidBadge = (item.is_paid === false) ? '<span class="text-red-500 font-bold text-xs"><i class="fa-solid fa-circle-minus"></i> مخصومة</span>' : '<span class="text-emerald-500 font-bold text-xs"><i class="fa-solid fa-circle-check"></i> مدفوعة</span>';
+                        if (item.status === 'pending') paidBadge = '<span class="text-slate-400 text-xs">...</span>';
+
+                        html += `<td class="px-6 py-4"><span class="block font-bold text-slate-700">${lTypeMap[item.leave_type] || item.leave_type}</span><span class="text-xs text-slate-500 font-mono block mt-1">من ${item.start_date} <br/> إلى ${item.end_date}</span></td>
+                                 <td class="px-6 py-4 text-center font-bold text-primary">${item.total_days}</td>
+                                 <td class="px-6 py-4 text-center">${paidBadge}</td>`;
                     } else {
-                        html += `<td class="px-6 py-4 text-emerald-600 font-bold">${item.amount} ر.س <span class="block text-xs text-slate-400 font-normal">تقسيط على ${item.months_installment} أشهر</span></td>
+                        html += `<td class="px-6 py-4"><span class="text-emerald-600 font-bold block">${item.amount} ر.س</span><span class="block text-xs text-slate-500 font-medium mt-1"><i class="fa-solid fa-calendar-days"></i> تقسيط على ${item.months_installment} أشهر</span></td>
                                  <td class="px-6 py-4 text-center text-red-500 font-bold">-${item.monthly_deduction} ر.س</td>`;
                     }
 
@@ -207,9 +328,11 @@
                         <td class="px-6 py-4 text-center">${getFsmBadge(item.status)}</td>
                         <td class="px-6 py-4 text-center">
                             ${item.status === 'pending' ? `
-                                <button onclick="updateFsmStatus('${item.id}', '${type}', 'approved')" class="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-check"></i></button>
-                                <button onclick="updateFsmStatus('${item.id}', '${type}', 'rejected')" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-times"></i></button>
-                            ` : `<span class="text-xs text-slate-400">---</span>`}
+                                <div class="flex justify-center gap-1">
+                                    <button onclick="openApprovalModal('${item.id}', '${type}')" class="text-emerald-600 bg-white border border-emerald-200 hover:bg-emerald-50 px-3 py-1.5 rounded-lg shadow-sm transition-colors" title="قبول"><i class="fa-solid fa-check"></i></button>
+                                    <button onclick="updateFsmStatus('${item.id}', '${type}', 'rejected')" class="text-red-600 bg-white border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-lg shadow-sm transition-colors" title="رفض"><i class="fa-solid fa-times"></i></button>
+                                </div>
+                            ` : `<span class="text-xs text-slate-400">لا إجراءات</span>`}
                         </td>
                     </tr>`;
                 });
@@ -224,41 +347,87 @@
         }
     }
 
-    // Modal Handlers
+    // Advanced Stats Loading
+    async function refreshStats() {
+        if (!window.db) return;
+        const compFilter = document.getElementById('filter-fsm-company').value;
+
+        try {
+            // Pending Count
+            let qLeavesP = window.db.from('leaves').select('id, employees!inner(company_id)').eq('status', 'pending');
+            let qLoansP = window.db.from('loans').select('id, employees!inner(company_id)').eq('status', 'pending');
+
+            if (compFilter !== 'all') {
+                qLeavesP = qLeavesP.eq('employees.company_id', compFilter);
+                qLoansP = qLoansP.eq('employees.company_id', compFilter);
+            }
+            const [resLp, resLop] = await Promise.all([qLeavesP, qLoansP]);
+            document.getElementById('stat-pending').innerText = (resLp.data?.length || 0) + (resLop.data?.length || 0);
+
+            // Total Active Loans
+            let qActiveLoans = window.db.from('loans').select('amount, employees!inner(company_id)').in('status', ['approved', 'processed']);
+            if (compFilter !== 'all') qActiveLoans = qActiveLoans.eq('employees.company_id', compFilter);
+            const resLoansActive = await qActiveLoans;
+            let totalDebt = 0;
+            if (resLoansActive.data) {
+                resLoansActive.data.forEach(l => totalDebt += parseFloat(l.amount || 0));
+            }
+            document.getElementById('stat-loans').innerHTML = `${totalDebt.toFixed(2)} <span class="text-sm font-normal text-slate-400">ر.س</span>`;
+
+            // Approved Leaves this month
+            var nDate = new Date();
+            const startOfMonth = new Date(nDate.getFullYear(), nDate.getMonth(), 1).toISOString().split('T')[0];
+            const endOfMonth = new Date(nDate.getFullYear(), nDate.getMonth() + 1, 0).toISOString().split('T')[0];
+
+            let qLeavesM = window.db.from('leaves').select('id, employees!inner(company_id)').eq('status', 'approved').gte('start_date', startOfMonth).lte('start_date', endOfMonth);
+            if (compFilter !== 'all') qLeavesM = qLeavesM.eq('employees.company_id', compFilter);
+            const resLeavesM = await qLeavesM;
+            document.getElementById('stat-leaves').innerText = resLeavesM.data?.length || 0;
+
+        } catch (e) { console.error("Stats check error: ", e); }
+    }
+
+
+    /* =============== Smart Modal Handlers =============== */
     async function openRequestModal() {
-        document.getElementById('request-modal').classList.remove('hidden');
-        document.getElementById('request-modal').classList.add('flex');
+        const modal = document.getElementById('request-modal');
+        if (modal.parentNode !== document.body) document.body.appendChild(modal);
+        modal.classList.remove('hidden'); modal.classList.add('flex');
+
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) mainContent.style.overflow = 'hidden';
 
         if (activeTab === 'leaves') {
-            document.getElementById('modal-req-title').innerText = 'طلب إجازة';
+            document.getElementById('modal-req-title').innerHTML = '<i class="fa-solid fa-plane-departure text-primary ml-2"></i> تقديم طلب إجازة';
             document.getElementById('leave-fields').classList.remove('hidden');
             document.getElementById('loan-fields').classList.add('hidden');
-            // make fields required dynamically
             document.getElementById('req-leave-start').required = true;
             document.getElementById('req-loan-amount').required = false;
         } else {
-            document.getElementById('modal-req-title').innerText = 'طلب سلفة';
+            document.getElementById('modal-req-title').innerHTML = '<i class="fa-solid fa-sack-dollar text-primary ml-2"></i> تقديم طلب سلفة';
             document.getElementById('loan-fields').classList.remove('hidden');
             document.getElementById('leave-fields').classList.add('hidden');
             document.getElementById('req-loan-amount').required = true;
             document.getElementById('req-leave-start').required = false;
         }
 
-        // load employees if not loaded
         const sel = document.getElementById('req-emp-id');
-        if (sel.options.length <= 1) { // 0 or empty placeholder
-            const { data } = await window.db.from('employees').select('id, first_name, last_name, companies(name)').eq('status', 'active');
+        if (sel.options.length <= 1) {
+            const { data } = await window.db.from('employees').select('id, first_name, last_name, company_id, companies(name)').eq('status', 'active');
             sel.innerHTML = '<option value="">-- اختر --</option>';
             data.forEach(e => {
-                sel.innerHTML += `<option value="${e.id}">${e.first_name} ${e.last_name} (${e.companies?.name || 'بدون منشأة'})</option>`;
+                sel.innerHTML += `<option value="${e.id}" data-company="${e.company_id}">${e.first_name} ${e.last_name} (${e.companies?.name || 'عام'})</option>`;
             });
         }
     }
 
     function closeRequestModal() {
-        document.getElementById('request-modal').classList.add('hidden');
-        document.getElementById('request-modal').classList.remove('flex');
+        const modal = document.getElementById('request-modal');
+        modal.classList.add('hidden'); modal.classList.remove('flex');
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) mainContent.style.overflow = 'auto';
         document.getElementById('request-form').reset();
+        document.getElementById('loan-warning').classList.add('hidden');
     }
 
     // Auto calculate loan monthly dedication
@@ -274,25 +443,49 @@
     lAmt.addEventListener('input', calcDeduction);
     lMon.addEventListener('input', calcDeduction);
 
+    // Dynamic Employee Watcher for Loan Warnings
+    document.getElementById('req-emp-id').addEventListener('change', async function () {
+        const wDiv = document.getElementById('loan-warning');
+        const wText = document.getElementById('loan-warning-text');
+        wDiv.classList.add('hidden');
+
+        if (!this.value || activeTab !== 'loans') return;
+
+        try {
+            const { data } = await window.db.from('loans').select('amount').eq('employee_id', this.value).in('status', ['approved', 'processed']);
+            if (data && data.length > 0) {
+                let total = data.reduce((sum, current) => sum + parseFloat(current.amount), 0);
+                wText.innerText = `تنبيه: الموظف لديه مديونية سابقة متبقي منها ${total.toFixed(2)} ر.س.`;
+                wDiv.classList.remove('hidden');
+                wDiv.classList.add('flex');
+            }
+        } catch (e) { }
+    });
 
     // Form Submission
     document.getElementById('request-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const empId = document.getElementById('req-emp-id').value;
+        const empSel = document.getElementById('req-emp-id');
+        const empId = empSel.value;
+        const compId = empSel.options[empSel.selectedIndex].getAttribute('data-company');
         const reason = document.getElementById('req-reason').value;
+
+        const btn = document.getElementById('btn-submit-req');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
         try {
             if (activeTab === 'leaves') {
                 const sDate = document.getElementById('req-leave-start').value;
                 const eDate = document.getElementById('req-leave-end').value;
-                // calc total days
                 const tDiff = new Date(eDate).getTime() - new Date(sDate).getTime();
-                const totalDays = Math.ceil(tDiff / (1000 * 3600 * 24)) + 1; // +1 to include both bounds
+                const totalDays = Math.ceil(tDiff / (1000 * 3600 * 24)) + 1;
 
                 if (totalDays <= 0) return alert('تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء');
 
                 const { error } = await window.db.from('leaves').insert([{
                     employee_id: empId,
+                    company_id: compId,
                     leave_type: document.getElementById('req-leave-type').value,
                     start_date: sDate,
                     end_date: eDate,
@@ -306,6 +499,7 @@
                 let mon = parseInt(lMon.value);
                 const { error } = await window.db.from('loans').insert([{
                     employee_id: empId,
+                    company_id: compId,
                     amount: amt,
                     months_installment: mon,
                     monthly_deduction: parseFloat((amt / mon).toFixed(2)),
@@ -318,19 +512,76 @@
             closeRequestModal();
             loadFsmData(activeTab);
 
-        } catch (err) { console.error(err); alert('فشل الإرسال.'); }
+        } catch (err) {
+            console.error(err);
+            alert('فشل الإرسال.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'تقديم الطلب';
+        }
     });
 
-    // FSM Approval Updates
+    // ================== APPROVAL WORKFLOW MODALS ==================
+    window.openApprovalModal = function (id, type) {
+        if (type === 'leaves') {
+            document.getElementById('leave-approve-id').value = id;
+            document.getElementById('leave-is-paid').checked = true; // Default
+            const mod = document.getElementById('leave-approval-modal');
+            if (mod.parentNode !== document.body) document.body.appendChild(mod);
+            mod.classList.remove('hidden'); mod.classList.add('flex');
+        } else {
+            document.getElementById('loan-approve-id').value = id;
+            document.getElementById('loan-auto-deduct').checked = true; // Default
+            const mod = document.getElementById('loan-approval-modal');
+            if (mod.parentNode !== document.body) document.body.appendChild(mod);
+            mod.classList.remove('hidden'); mod.classList.add('flex');
+        }
+    }
+
+    window.closeLeaveApproval = function () {
+        const mod = document.getElementById('leave-approval-modal');
+        mod.classList.add('hidden'); mod.classList.remove('flex');
+    }
+    window.closeLoanApproval = function () {
+        const mod = document.getElementById('loan-approval-modal');
+        mod.classList.add('hidden'); mod.classList.remove('flex');
+    }
+
+    window.confirmLeaveApproval = async function () {
+        const id = document.getElementById('leave-approve-id').value;
+        const isPaid = document.getElementById('leave-is-paid').checked;
+        closeLeaveApproval();
+
+        try {
+            const { error } = await window.db.from('leaves').update({ status: 'approved', is_paid: isPaid }).eq('id', id);
+            if (error) throw error;
+            loadFsmData(activeTab);
+        } catch (e) { console.error(e); alert('خطأ في الاعتماد'); }
+    }
+
+    window.confirmLoanApproval = async function () {
+        const id = document.getElementById('loan-approve-id').value;
+        const autoDeduct = document.getElementById('loan-auto-deduct').checked;
+        closeLoanApproval();
+
+        try {
+            const { error } = await window.db.from('loans').update({ status: 'approved', auto_deduct: autoDeduct }).eq('id', id);
+            if (error) throw error;
+            loadFsmData(activeTab);
+        } catch (e) { console.error(e); alert('خطأ في الاعتماد'); }
+    }
+
     window.updateFsmStatus = async function (id, type, newStatus) {
-        if (!confirm(`هل أنت متأكد من تغيير حالة الطلب لـ ${newStatus}؟`)) return;
+        // Fallback for independent Rejections
+        if (!confirm(`هل أنت متأكد من تغيير حالة الطلب لـ رفض؟`)) return;
         try {
             const { error } = await window.db.from(type).update({ status: newStatus }).eq('id', id);
             if (error) throw error;
-            loadFsmData(activeTab); // refresh list
+            loadFsmData(activeTab);
         } catch (e) { console.error(e); }
     }
 
+    // Filters & Init
     async function loadCompaniesFilter() {
         if (!window.db) return;
         const compFilter = document.getElementById('filter-fsm-company');
@@ -341,10 +592,7 @@
                     compFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
                 });
             }
-        } catch (e) {
-            console.error("Filter error:", e);
-            alert("Error loading companies filter: " + (e.message || JSON.stringify(e)));
-        }
+        } catch (e) { }
     }
 
     document.getElementById('filter-fsm-company').addEventListener('change', () => loadFsmData(activeTab));
