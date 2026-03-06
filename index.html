@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الموارد البشرية والرواتب</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#0ea5e9', // Sky 500
+                        secondary: '#475569', // Slate 600
+                        dark: '#0f172a', // Slate 900
+                        light: '#f8fafc', // Slate 50
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="bg-light text-slate-800 font-sans">
+
+    <!-- App Container -->
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar -->
+        <aside class="w-64 bg-dark text-white flex flex-col transition-all duration-300 transform translate-x-0"
+            id="sidebar">
+            <div class="h-16 flex items-center justify-center border-b border-slate-700">
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-users-gear text-primary"></i>
+                    <span>نظام HRMS</span>
+                </h1>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1 px-3">
+                    <li>
+                        <a href="#dashboard"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="dashboard">
+                            <i class="fa-solid fa-house w-5 text-center"></i>
+                            <span>لوحة التحكم</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#companies"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="companies">
+                            <i class="fa-solid fa-building w-5 text-center text-amber-500"></i>
+                            <span>المنشآت والفروع</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#employee-profile"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="employee-profile">
+                            <i class="fa-solid fa-id-card w-5 text-center"></i>
+                            <span>ملف الموظفين</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#time-attendance"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="time-attendance">
+                            <i class="fa-solid fa-clock w-5 text-center"></i>
+                            <span>الحضور والانصراف</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#leaves-loans"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="leaves-loans">
+                            <i class="fa-solid fa-file-signature w-5 text-center"></i>
+                            <span>الإجازات والسلف</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#payroll"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                            data-page="payroll">
+                            <i class="fa-solid fa-money-check-dollar w-5 text-center"></i>
+                            <span>مسير الرواتب</span>
+                        </a>
+                    </li>
+                    <li class="pt-4 mt-4 border-t border-slate-700">
+                        <a href="#users"
+                            class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-400 hover:bg-slate-800 transition-colors"
+                            data-page="users">
+                            <i class="fa-solid fa-user-shield w-5 text-center"></i>
+                            <span>المستخدمين والصلاحيات</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-slate-700">
+                <button id="logout-btn"
+                    class="flex items-center gap-2 w-full px-3 py-2 text-right rounded-lg text-red-400 hover:bg-slate-800 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main ContentWrapper -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Header -->
+            <header
+                class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm relative z-0 w-full">
+                <button id="toggle-sidebar" class="text-slate-500 hover:text-primary transition-colors text-xl">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div class="flex items-center gap-4">
+                    <div class="text-left select-none">
+                        <p class="text-sm font-semibold text-slate-700" id="current-user-name">مدير النظام</p>
+                        <p class="text-xs text-slate-400 text-left">إدارة الموارد البشرية</p>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow shadow-primary/40 cursor-pointer">
+                        م
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Page Content -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-6" id="main-content">
+                <!-- Page contents will be loaded here dynamically -->
+                <div class="flex justify-center items-center h-full">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/supabaseClient.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>
