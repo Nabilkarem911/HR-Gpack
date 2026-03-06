@@ -1,0 +1,177 @@
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">مرحباً بك في لوحة التحكم</h2>
+            <p class="text-slate-500 mt-1">نظرة عامة على نظام الموارد البشرية والرواتب</p>
+        </div>
+        <div
+            class="text-sm text-slate-600 bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2">
+            <i class="fa-regular fa-calendar text-primary"></i>
+            <span id="current-date" class="font-medium"></span>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Stat Card 1 -->
+        <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-5 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div
+                class="w-14 h-14 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 font-medium mb-1">الموظفين</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-3xl font-bold text-slate-800" id="stat-total-emp">--</h3>
+                    <span class="text-xs text-slate-400 mb-1">نشط</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Card 2 -->
+        <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-5 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div
+                class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 font-medium mb-1">حضور اليوم</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-3xl font-bold text-slate-800" id="stat-present">--</h3>
+                    <span class="text-xs text-slate-400 mb-1">موظف</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Card 3 -->
+        <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-5 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div
+                class="w-14 h-14 rounded-full bg-orange-50 text-amber-500 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 font-medium mb-1">طلبات معلقة</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-3xl font-bold text-slate-800" id="stat-pending-requests">--</h3>
+                    <span class="text-xs text-slate-400 mb-1">إجازة / سلفة</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stat Card 4 -->
+        <div
+            class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex items-center gap-5 transition-transform hover:-translate-y-1 hover:shadow-md cursor-default">
+            <div
+                class="w-14 h-14 rounded-full bg-purple-50 text-purple-500 flex items-center justify-center text-2xl shrink-0">
+                <i class="fa-solid fa-wallet"></i>
+            </div>
+            <div>
+                <p class="text-sm text-slate-500 font-medium mb-1">إجمالي رواتب الشهر</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-2xl font-bold text-slate-800" id="stat-total-payroll">--</h3>
+                    <span class="text-xs font-normal text-slate-400 mb-1">ر.س</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts / Alerts Area (Placeholder) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Welcome Alert -->
+        <div
+            class="lg:col-span-2 bg-gradient-to-r from-primary to-blue-400 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+            <div class="relative z-10 w-3/4">
+                <h3 class="text-xl font-bold mb-2">مرحباً بك في نظام HRMS الجديد</h3>
+                <p class="text-blue-100 text-sm leading-relaxed mb-4">
+                    لقد تم إعداد قاعدة بيانات Supabase بنجاح وتجهيز الواجهات الأولية. عبر القائمة الجانبية يمكنك
+                    الانتقال بين وحدات ملفات الموظفين، الحضور، الإجازات، الرواتب بكل سهولة.
+                </p>
+                <a href="#employee-profile"
+                    class="inline-block bg-white text-primary font-medium px-4 py-2 rounded-lg text-sm transition-colors hover:bg-blue-50">
+                    أضف أول موظف <i class="fa-solid fa-arrow-left mr-1 text-xs rtl-flip"></i>
+                </a>
+            </div>
+            <!-- Decorative Icon -->
+            <i
+                class="fa-solid fa-seedling absolute text-[120px] text-white/10 -left-6 -bottom-6 transform -rotate-12 z-0"></i>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center justify-between">
+                <span>نشاطات حديثة</span>
+                <i class="fa-solid fa-chart-line text-slate-400"></i>
+            </h3>
+            <div class="space-y-4">
+                <!-- Activity Item -->
+                <div class="flex gap-4">
+                    <div class="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0"></div>
+                    <div>
+                        <p class="text-sm text-slate-700 font-medium">تم تفعيل النظام وبناء قواعد البيانات</p>
+                        <p class="text-xs text-slate-400 mt-1">منذ لحظات</p>
+                    </div>
+                </div>
+                <!-- You can add more dynamically later -->
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Set actual date
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Fetch quick stats from Supabase
+    async function loadDashboardStats() {
+        if (!window.db) return;
+
+        try {
+            // Count active employees
+            const { count: empCount, error: empErr } = await window.db
+                .from('employees')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'active');
+
+            if (!empErr && empCount !== null) {
+                document.getElementById('stat-total-emp').innerText = empCount;
+            } else {
+                document.getElementById('stat-total-emp').innerText = '0';
+            }
+
+            // Pending Leaves/Loans
+            const { count: leavesCount } = await window.db
+                .from('leaves')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'pending');
+
+            const { count: loansCount } = await window.db
+                .from('loans')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'pending');
+
+            const totalPending = (leavesCount || 0) + (loansCount || 0);
+            document.getElementById('stat-pending-requests').innerText = totalPending;
+
+            // Attendance today
+            const today = new Date().toISOString().split('T')[0];
+            const { count: attCount } = await window.db
+                .from('attendance')
+                .select('*', { count: 'exact', head: true })
+                .eq('date', today)
+                .in('status', ['present', 'late', 'half_day']);
+
+            document.getElementById('stat-present').innerText = attCount || 0;
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    loadDashboardStats();
+</script>

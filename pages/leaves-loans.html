@@ -1,0 +1,355 @@
+<div class="space-y-6">
+    <!-- Navigation Tabs -->
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+        <div class="flex gap-2 bg-slate-100 p-1 rounded-lg">
+            <button id="tab-leaves"
+                class="px-6 py-2 rounded-md bg-white text-primary font-bold shadow-sm transition-all focus:outline-none"
+                onclick="switchTab('leaves')">
+                <i class="fa-solid fa-umbrella-beach ml-1"></i> طلبات الإجازات
+            </button>
+            <button id="tab-loans"
+                class="px-6 py-2 rounded-md text-slate-500 hover:text-slate-700 transition-all focus:outline-none"
+                onclick="switchTab('loans')">
+                <i class="fa-solid fa-hand-holding-dollar ml-1"></i> طلبات السلف / القروض
+            </button>
+        </div>
+        <div class="flex gap-4">
+            <select id="filter-fsm-company"
+                class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary text-slate-700">
+                <option value="all">كل المنشآت</option>
+            </select>
+            <button onclick="openRequestModal()"
+                class="bg-primary text-white px-5 py-2 rounded-lg shadow-sm hover:bg-blue-600 transition-colors flex items-center gap-2 font-medium">
+                <i class="fa-solid fa-paper-plane"></i> تقديم طلب جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- Container for dynamic table Views -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden" id="fsm-table-container">
+        <!-- Will be replaced dynamically -->
+        <div class="p-10 text-center">
+            <div
+                class="animate-spin inline-block w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for New Request -->
+<div id="request-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
+    <div class="ant-modal relative">
+        <div class="ant-modal-content">
+            <div class="ant-modal-header">
+                <h3 id="modal-req-title">تقديم طلب جديد</h3>
+                <button onclick="closeRequestModal()">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+            <div class="ant-modal-body">
+                <form id="request-form" class="space-y-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">الموظف *</label>
+                        <select id="req-emp-id" required
+                            class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary"></select>
+                    </div>
+
+                    <!-- Dynamic Fields Based on Tab -->
+                    <div id="leave-fields" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">نوع الإجازة *</label>
+                            <select id="req-leave-type"
+                                class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:ring-1 focus:ring-primary">
+                                <option value="annual">سنوية</option>
+                                <option value="sick">مرضية</option>
+                                <option value="unpaid">بدون راتب</option>
+                                <option value="emergency">طارئة</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">من تاريخ *</label>
+                                <input type="date" id="req-leave-start"
+                                    class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">إلى تاريخ *</label>
+                                <input type="date" id="req-leave-end"
+                                    class="w-full border border-slate-200 rounded-lg px-4 py-2 text-right">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="loan-fields" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المطلوب (ر.س) *</label>
+                            <input type="number" id="req-loan-amount" min="1" step="0.01"
+                                class="w-full text-left border border-slate-200 rounded-lg px-4 py-2">
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">عدد أشهر التقسيط *</label>
+                                <input type="number" id="req-loan-months" min="1" value="1"
+                                    class="w-full text-left border border-slate-200 rounded-lg px-4 py-2">
+                            </div>
+                            <div
+                                class="flex-1 bg-slate-50 p-3 rounded-lg border border-slate-100 flex flex-col justify-center">
+                                <span class="text-xs text-slate-500 mb-1">الخصم الشهري:</span>
+                                <span id="loan-monthly-calc" class="font-bold text-red-500">0.00 ر.س</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-slate-700 mb-1">السبب / ملاحظات</label>
+                        <textarea id="req-reason" rows="3"
+                            class="w-full border border-slate-200 rounded-lg px-4 py-2"></textarea>
+                    </div>
+
+                    <div class="mt-8 flex justify-end gap-3">
+                        <button type="submit" id="btn-submit-req"
+                            class="px-5 py-2 rounded-lg text-white bg-primary hover:bg-blue-600 transition-colors font-medium">تقديم
+                            الطلب</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var activeTab = 'leaves'; // 'leaves' or 'loans'
+
+    function switchTab(tab) {
+        activeTab = tab;
+        const btnLeaves = document.getElementById('tab-leaves');
+        const btnLoans = document.getElementById('tab-loans');
+
+        if (tab === 'leaves') {
+            btnLeaves.classList.add('bg-white', 'text-primary', 'shadow-sm');
+            btnLeaves.classList.remove('text-slate-500', 'bg-transparent');
+            btnLoans.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+            btnLoans.classList.add('text-slate-500', 'bg-transparent');
+            loadFsmData('leaves');
+        } else {
+            btnLoans.classList.add('bg-white', 'text-primary', 'shadow-sm');
+            btnLoans.classList.remove('text-slate-500', 'bg-transparent');
+            btnLeaves.classList.remove('bg-white', 'text-primary', 'shadow-sm');
+            btnLeaves.classList.add('text-slate-500', 'bg-transparent');
+            loadFsmData('loans');
+        }
+    }
+
+    function getFsmBadge(status) {
+        const statuses = {
+            'pending': '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded-md text-xs font-bold border border-amber-200">قيد الانتظار <i class="fa-solid fa-hourglass-half"></i></span>',
+            'approved': '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold border border-emerald-200">مقبول <i class="fa-solid fa-check"></i></span>',
+            'rejected': '<span class="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-bold border border-red-200">مرفوض <i class="fa-solid fa-times"></i></span>',
+            'processed': '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-md text-xs font-bold border border-blue-200">تم المعالجة بالراتب <i class="fa-solid fa-money-bill-wave"></i></span>'
+        };
+        return statuses[status] || status;
+    }
+
+    async function loadFsmData(type) {
+        if (!window.db) return;
+        const container = document.getElementById('fsm-table-container');
+        container.innerHTML = '<div class="p-10 text-center"><div class="animate-spin inline-block w-8 h-8 border-[3px] border-primary border-t-transparent rounded-full"></div></div>';
+
+        const compFilter = document.getElementById('filter-fsm-company').value;
+
+        try {
+            const { data, error } = await window.db
+                .from(type)
+                .select(`*, employees!employee_id!inner(first_name, last_name, company_id, companies(name))`)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            let filteredData = data;
+            if (compFilter !== 'all') {
+                filteredData = data.filter(r => r.employees?.company_id == compFilter);
+            }
+
+            let html = `<div class="overflow-x-auto"><table class="w-full text-right"><thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm"><tr>`;
+            html += `<th class="px-6 py-4 font-semibold w-1/4">الموظف</th>`;
+
+            if (type === 'leaves') {
+                html += `<th class="px-6 py-4 font-semibold">التفاصيل</th><th class="px-6 py-4 font-semibold text-center">المدة (أيام)</th>`;
+            } else {
+                html += `<th class="px-6 py-4 font-semibold">المبلغ المطلوب</th><th class="px-6 py-4 font-semibold text-center">الخصم الشهري</th>`;
+            }
+
+            html += `<th class="px-6 py-4 font-semibold text-center">حالة الطلب</th>
+                     <th class="px-6 py-4 font-semibold text-center">القرار</th></tr></thead><tbody class="divide-y divide-slate-100 text-sm">`;
+
+            if (filteredData.length === 0) {
+                html += `<tr><td colspan="5" class="text-center py-10 text-slate-500">لا توجد طلبات.</td></tr>`;
+            } else {
+                filteredData.forEach(item => {
+                    html += `<tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4">
+                             <div class="text-slate-800 font-bold">${item.employees?.first_name} ${item.employees?.last_name}</div>
+                             <div class="text-xs text-amber-600 font-medium">${item.employees?.companies?.name || '-'}</div>
+                        </td>
+                    `;
+
+                    if (type === 'leaves') {
+                        let lTypeMap = { 'annual': 'إجازة سنوية', 'sick': 'إجازة مرضية', 'unpaid': 'بدون راتب', 'emergency': 'طارئة' };
+                        html += `<td class="px-6 py-4"><span class="block font-semibold text-slate-700">${lTypeMap[item.leave_type]}</span><span class="text-xs text-slate-400">من ${item.start_date} إلى ${item.end_date}</span></td>
+                                 <td class="px-6 py-4 text-center font-bold text-primary">${item.total_days}</td>`;
+                    } else {
+                        html += `<td class="px-6 py-4 text-emerald-600 font-bold">${item.amount} ر.س <span class="block text-xs text-slate-400 font-normal">تقسيط على ${item.months_installment} أشهر</span></td>
+                                 <td class="px-6 py-4 text-center text-red-500 font-bold">-${item.monthly_deduction} ر.س</td>`;
+                    }
+
+                    html += `
+                        <td class="px-6 py-4 text-center">${getFsmBadge(item.status)}</td>
+                        <td class="px-6 py-4 text-center">
+                            ${item.status === 'pending' ? `
+                                <button onclick="updateFsmStatus('${item.id}', '${type}', 'approved')" class="text-emerald-600 hover:bg-emerald-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-check"></i></button>
+                                <button onclick="updateFsmStatus('${item.id}', '${type}', 'rejected')" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded transition-colors"><i class="fa-solid fa-times"></i></button>
+                            ` : `<span class="text-xs text-slate-400">---</span>`}
+                        </td>
+                    </tr>`;
+                });
+            }
+
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            document.getElementById('fsm-table-container').innerHTML = `<div class="p-10 text-center text-red-500 font-bold"><p>Error: ${e.message || JSON.stringify(e)}</p></div>`;
+        }
+    }
+
+    // Modal Handlers
+    async function openRequestModal() {
+        document.getElementById('request-modal').classList.remove('hidden');
+        document.getElementById('request-modal').classList.add('flex');
+
+        if (activeTab === 'leaves') {
+            document.getElementById('modal-req-title').innerText = 'طلب إجازة';
+            document.getElementById('leave-fields').classList.remove('hidden');
+            document.getElementById('loan-fields').classList.add('hidden');
+            // make fields required dynamically
+            document.getElementById('req-leave-start').required = true;
+            document.getElementById('req-loan-amount').required = false;
+        } else {
+            document.getElementById('modal-req-title').innerText = 'طلب سلفة';
+            document.getElementById('loan-fields').classList.remove('hidden');
+            document.getElementById('leave-fields').classList.add('hidden');
+            document.getElementById('req-loan-amount').required = true;
+            document.getElementById('req-leave-start').required = false;
+        }
+
+        // load employees if not loaded
+        const sel = document.getElementById('req-emp-id');
+        if (sel.options.length <= 1) { // 0 or empty placeholder
+            const { data } = await window.db.from('employees').select('id, first_name, last_name, companies(name)').eq('status', 'active');
+            sel.innerHTML = '<option value="">-- اختر --</option>';
+            data.forEach(e => {
+                sel.innerHTML += `<option value="${e.id}">${e.first_name} ${e.last_name} (${e.companies?.name || 'بدون منشأة'})</option>`;
+            });
+        }
+    }
+
+    function closeRequestModal() {
+        document.getElementById('request-modal').classList.add('hidden');
+        document.getElementById('request-modal').classList.remove('flex');
+        document.getElementById('request-form').reset();
+    }
+
+    // Auto calculate loan monthly dedication
+    var lAmt = document.getElementById('req-loan-amount');
+    var lMon = document.getElementById('req-loan-months');
+    var cVal = document.getElementById('loan-monthly-calc');
+    function calcDeduction() {
+        let amt = parseFloat(lAmt.value) || 0;
+        let mon = parseInt(lMon.value) || 1;
+        let res = (amt / mon).toFixed(2);
+        cVal.innerText = res + ' ر.س';
+    }
+    lAmt.addEventListener('input', calcDeduction);
+    lMon.addEventListener('input', calcDeduction);
+
+
+    // Form Submission
+    document.getElementById('request-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const empId = document.getElementById('req-emp-id').value;
+        const reason = document.getElementById('req-reason').value;
+
+        try {
+            if (activeTab === 'leaves') {
+                const sDate = document.getElementById('req-leave-start').value;
+                const eDate = document.getElementById('req-leave-end').value;
+                // calc total days
+                const tDiff = new Date(eDate).getTime() - new Date(sDate).getTime();
+                const totalDays = Math.ceil(tDiff / (1000 * 3600 * 24)) + 1; // +1 to include both bounds
+
+                if (totalDays <= 0) return alert('تاريخ الانتهاء يجب أن يكون بعد تاريخ البدء');
+
+                const { error } = await window.db.from('leaves').insert([{
+                    employee_id: empId,
+                    leave_type: document.getElementById('req-leave-type').value,
+                    start_date: sDate,
+                    end_date: eDate,
+                    total_days: totalDays,
+                    reason: reason,
+                    status: 'pending'
+                }]);
+                if (error) throw error;
+            } else {
+                let amt = parseFloat(lAmt.value);
+                let mon = parseInt(lMon.value);
+                const { error } = await window.db.from('loans').insert([{
+                    employee_id: empId,
+                    amount: amt,
+                    months_installment: mon,
+                    monthly_deduction: parseFloat((amt / mon).toFixed(2)),
+                    reason: reason,
+                    status: 'pending'
+                }]);
+                if (error) throw error;
+            }
+
+            closeRequestModal();
+            loadFsmData(activeTab);
+
+        } catch (err) { console.error(err); alert('فشل الإرسال.'); }
+    });
+
+    // FSM Approval Updates
+    window.updateFsmStatus = async function (id, type, newStatus) {
+        if (!confirm(`هل أنت متأكد من تغيير حالة الطلب لـ ${newStatus}؟`)) return;
+        try {
+            const { error } = await window.db.from(type).update({ status: newStatus }).eq('id', id);
+            if (error) throw error;
+            loadFsmData(activeTab); // refresh list
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadCompaniesFilter() {
+        if (!window.db) return;
+        const compFilter = document.getElementById('filter-fsm-company');
+        try {
+            const { data } = await window.db.from('companies').select('id, name');
+            if (data) {
+                data.forEach(c => {
+                    compFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        } catch (e) {
+            console.error("Filter error:", e);
+            alert("Error loading companies filter: " + (e.message || JSON.stringify(e)));
+        }
+    }
+
+    document.getElementById('filter-fsm-company').addEventListener('change', () => loadFsmData(activeTab));
+
+    // Default Load
+    loadCompaniesFilter().then(() => switchTab('leaves'));
+
+</script>

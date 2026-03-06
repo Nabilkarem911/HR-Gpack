@@ -1,0 +1,241 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-user-shield text-emerald-500"></i>
+                إدارة مستخدمي النظام (System Users)
+            </h2>
+            <p class="text-slate-500 mt-1">هؤلاء هم الأشخاص المصرح لهم بالدخول للوحة التحكم هذه وليسوا الموظفين المسجلين
+                في كشوفات الرواتب. يمكنك إعطائهم صلاحيات (Super Admin, HR Manager).</p>
+        </div>
+        <div>
+            <button onclick="openAddSystemUserModal()"
+                class="bg-emerald-500 text-white px-5 py-2 rounded-lg shadow-sm hover:bg-emerald-600 transition-colors flex items-center gap-2 font-medium">
+                <i class="fa-solid fa-user-plus"></i> إضافة مستخدم نظام جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- System Users Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right" id="users-table">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold">المستخدم / البريد الإلكتروني</th>
+                        <th class="px-6 py-4 font-semibold text-center">الصلاحية (Role)</th>
+                        <th class="px-6 py-4 font-semibold text-center">المنشأة المخصصة</th>
+                        <th class="px-6 py-4 font-semibold text-center">تغيير الصلاحية</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm" id="users-tbody">
+                    <tr>
+                        <td colspan="4" class="text-center py-10">
+                            <div
+                                class="animate-spin inline-block w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add System User Modal -->
+<div id="sys-user-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
+    <div class="ant-modal relative">
+        <div class="ant-modal-content">
+            <div class="ant-modal-header">
+                <h3>إنشاء حساب مستخدم جديد</h3>
+                <button onclick="closeAddSystemUserModal()">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+            <form id="sys-user-form" class="ant-modal-body">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الاسم الكامل</label>
+                    <input type="text" id="su-name" required
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        placeholder="مثال: أحمد مدير النظام">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">البريد الإلكتروني (لتسجيل الدخول)
+                        *</label>
+                    <input type="email" id="su-email" required
+                        class="w-full text-left border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        dir="ltr" placeholder="admin@domain.com">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">كلمة المرور *</label>
+                    <input type="password" id="su-pass" required
+                        class="w-full text-left border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                        dir="ltr" minlength="6" placeholder="******">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">الصلاحية *</label>
+                    <select id="su-role" class="w-full border border-slate-200 rounded-lg px-4 py-2">
+                        <option value="viewer">مشاهد (Viewer)</option>
+                        <option value="hr_manager">مدير موارد بشرية (HR Manager)</option>
+                        <option value="super_admin">مدير عام (Super Admin)</option>
+                    </select>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="submit" id="btn-submit-su"
+                        class="px-5 py-2 rounded-lg text-white bg-emerald-500 hover:bg-emerald-600 transition-colors font-medium text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i> إنشاء مستخدم
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadSystemUsers() {
+        if (!window.db) return;
+        const tbody = document.getElementById('users-tbody');
+        try {
+            // First check if user is super admin
+            const currentSession = await window.checkAuth();
+            if (!currentSession) return;
+
+            // Fetch from system_users table instead of employees
+            const { data, error } = await window.db
+                .from('system_users')
+                .select('id, email, full_name, role, companies(name)')
+                .order('created_at', { ascending: false });
+
+            // If we get an RLS error, it means the table might not exist or user is not super_admin
+            if (error) {
+                if (error.message.includes('relation "system_users" does not exist')) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-red-500 text-lg"><i class="fa-solid fa-triangle-exclamation mb-2 text-3xl"></i><br>يرجى تشغيل ملف <b>architect_system_users.sql</b> في Supabase أولاً لتأسيس نظام المستخدمين الجديد!</td></tr>`;
+                    return;
+                }
+                throw error;
+            }
+
+            if (data.length === 0) {
+                // If table is empty, auto-insert current user as Super Admin (Self-Healing logic)
+                const { data: { user } } = await window.db.auth.getUser();
+                if (user) {
+                    await window.db.from('system_users').insert([{ id: user.id, email: user.email, full_name: 'مدير النظام (الأول)', role: 'super_admin' }]);
+                    return loadSystemUsers(); // Retry
+                }
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-500">لا يوجد مستخدمين مسجلين.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(u => {
+                let roleHtml = '';
+                if (u.role === 'super_admin') roleHtml = '<span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold w-32 inline-block"><i class="fa-solid fa-crown ml-1"></i> مدير عام</span>';
+                else if (u.role === 'hr_manager') roleHtml = '<span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold w-32 inline-block"><i class="fa-solid fa-user-tie ml-1"></i> موارد بشرية</span>';
+                else roleHtml = '<span class="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold w-32 inline-block">مشاهد</span>';
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-800">${u.full_name || 'مستخدم نظام'}</div>
+                                    <div class="text-sm text-slate-500" dir="ltr">${u.email}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">${roleHtml}</td>
+                        <td class="px-6 py-4 text-center text-sm font-bold text-amber-600">${u.companies?.name || 'الكل (إدارة مركزية)'}</td>
+                        <td class="px-6 py-4 text-center">
+                            <select onchange="updateUserRole('${u.id}', this.value)" class="text-sm border border-slate-200 rounded p-1 bg-white focus:outline-none focus:border-emerald-500">
+                                <option value="super_admin" ${u.role === 'super_admin' ? 'selected' : ''}>Super Admin</option>
+                                <option value="hr_manager" ${u.role === 'hr_manager' ? 'selected' : ''}>HR Manager</option>
+                                <option value="viewer" ${u.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-red-500 font-bold">حدث خطأ: ${e.message || JSON.stringify(e)}</td></tr>`;
+        }
+    }
+
+    window.updateUserRole = async function (userId, newRole) {
+        if (!confirm('هل أنت متأكد من تغيير صلاحيات هذا المستخدم في النظام؟')) return loadSystemUsers();
+
+        try {
+            const { error } = await window.db.from('system_users').update({ role: newRole }).eq('id', userId);
+            if (error) throw error;
+
+            alert('تم التحديث بنجاح.');
+            loadSystemUsers();
+        } catch (e) {
+            console.error(e);
+            alert('حدث خطأ. تأكد أنك Super Admin وأن قاعدة البيانات مهيأة.');
+        }
+    }
+
+    var sysUserModal = document.getElementById('sys-user-modal');
+    function openAddSystemUserModal() {
+        sysUserModal.classList.remove('hidden'); sysUserModal.classList.add('flex');
+    }
+    function closeAddSystemUserModal() {
+        sysUserModal.classList.remove('flex'); sysUserModal.classList.add('hidden');
+        document.getElementById('sys-user-form').reset();
+    }
+
+    document.getElementById('sys-user-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('su-email').value;
+        const pass = document.getElementById('su-pass').value;
+        const name = document.getElementById('su-name').value;
+        const role = document.getElementById('su-role').value;
+
+        const btn = document.getElementById('btn-submit-su');
+        const origText = btn.innerHTML;
+        btn.innerHTML = 'جاري الإنشاء...'; btn.disabled = true;
+
+        try {
+            // 1. Create Auth User via Supabase Edge/Client
+            const { data, error } = await window.db.auth.signUp({
+                email: email,
+                password: pass,
+                options: {
+                    data: { full_name: name } // This will be passed to raw_user_meta_data
+                }
+            });
+            if (error) throw error;
+
+            // 2. The database Trigger (handle_new_user) will automatically insert this user into system_users!
+            // But we need to update their specific role since the trigger defaults to 'viewer'
+            if (data.user) {
+                // Wait a tiny bit for the trigger to insert the row
+                setTimeout(async () => {
+                    await window.db.from('system_users').update({ role: role }).eq('id', data.user.id);
+                    alert('تم إنشاء مستخدم النظام بنجاح!');
+                    closeAddSystemUserModal();
+                    loadSystemUsers();
+                }, 1000);
+            } else {
+                alert('تم إنشاء المستخدم محلياً بنجاح!');
+                closeAddSystemUserModal();
+            }
+
+        } catch (e) {
+            console.error(e);
+            alert(e.message || 'حدث خطأ');
+        } finally {
+            if (btn) { btn.innerHTML = origText; btn.disabled = false; }
+        }
+    });
+
+    loadSystemUsers();
+</script>

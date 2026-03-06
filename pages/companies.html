@@ -1,0 +1,159 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-building text-amber-500"></i>
+                إدارة المنشآت
+            </h2>
+            <p class="text-slate-500 mt-1">أضف المنشآت أو الفروع التابعة (مثل مطعم، مستودع، مصنع) لربط الموظفين بها
+                وتسهيل فلترتها.</p>
+        </div>
+        <div>
+            <button onclick="openCompanyModal()"
+                class="bg-amber-500 text-white px-5 py-2 rounded-lg shadow-sm hover:bg-amber-600 transition-colors flex items-center gap-2 font-medium">
+                <i class="fa-solid fa-plus"></i> إضافة منشأة جديدة
+            </button>
+        </div>
+    </div>
+
+    <!-- Companies Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right" id="companies-table">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold">اسم المنشأة</th>
+                        <th class="px-6 py-4 font-semibold text-center">تاريخ الإضافة</th>
+                        <th class="px-6 py-4 font-semibold text-center">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm" id="companies-tbody">
+                    <tr>
+                        <td colspan="3" class="text-center py-10">
+                            <div
+                                class="animate-spin inline-block w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="company-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
+    <div class="ant-modal relative">
+        <div class="ant-modal-content">
+            <div class="ant-modal-header">
+                <h3 id="modal-comp-title">إضافة منشأة</h3>
+                <button onclick="closeCompanyModal()">
+                    <i class="fa-solid fa-times text-lg"></i>
+                </button>
+            </div>
+            <form id="company-form" class="ant-modal-body">
+                <input type="hidden" id="comp-id">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-slate-700 mb-1">اسم المنشأة *</label>
+                    <input type="text" id="comp-name" required
+                        class="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                </div>
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="submit" id="btn-submit-comp"
+                        class="px-5 py-2 rounded-lg text-white bg-amber-500 hover:bg-amber-600 transition-colors font-medium">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var compModal = document.getElementById('company-modal');
+
+    function openCompanyModal(id = '', name = '') {
+        compModal.classList.remove('hidden');
+        compModal.classList.add('flex');
+        document.getElementById('comp-id').value = id;
+        document.getElementById('comp-name').value = name;
+        document.getElementById('modal-comp-title').innerText = id ? 'تعديل المنشأة' : 'إضافة منشأة';
+    }
+
+    function closeCompanyModal() {
+        compModal.classList.add('hidden');
+        compModal.classList.remove('flex');
+        document.getElementById('company-form').reset();
+    }
+
+    async function loadCompanies() {
+        if (!window.db) return;
+        const tbody = document.getElementById('companies-tbody');
+        try {
+            const { data, error } = await window.db.from('companies').select('*').order('created_at', { ascending: true });
+            if (error) throw error;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-500">لا يوجد منشآت مضافة.</td></tr>`;
+                return;
+            }
+            let html = '';
+            data.forEach(c => {
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4 font-bold text-slate-800 w-1/2">${c.name}</td>
+                        <td class="px-6 py-4 text-center font-mono text-slate-500 text-sm">${new Date(c.created_at).toLocaleDateString()}</td>
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="openCompanyModal('${c.id}', '${c.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" class="text-amber-500 hover:bg-amber-50 p-2 rounded transition-colors tooltip relative group">
+                                <i class="fa-solid fa-pen"></i>
+                                <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">تعديل</span>
+                            </button>
+                            <button onclick="deleteCompany('${c.id}', '${c.name.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" class="text-red-500 hover:bg-red-50 p-2 rounded transition-colors tooltip relative group">
+                                <i class="fa-solid fa-trash"></i>
+                                <span class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100">حذف</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-red-500 font-bold">Error: ${e.message || JSON.stringify(e)}</td></tr>`;
+        }
+    }
+
+    window.deleteCompany = async function (id, name) {
+        if (!confirm(`هل أنت متأكد من حذف المنشأة "${name}"؟ سيتعذر الحذف إذا كان هناك موظفين مرتبطين بها.`)) return;
+        try {
+            const { error } = await window.db.from('companies').delete().eq('id', id);
+            if (error) {
+                if (error.code === '23503') throw new Error("لا يمكن حذف المنشأة لوجود سجلات مرتبطة بها (موظفين، رواتب، الخ).");
+                throw error;
+            }
+            alert('تم الحذف بنجاح.');
+            loadCompanies();
+        } catch (e) {
+            console.error(e);
+            alert(e.message || 'حدث خطأ أثناء الحذف.');
+        }
+    }
+
+    document.getElementById('company-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('comp-id').value;
+        const name = document.getElementById('comp-name').value;
+        try {
+            if (id) {
+                const { error } = await window.db.from('companies').update({ name }).eq('id', id);
+                if (error) throw error;
+            } else {
+                const { error } = await window.db.from('companies').insert([{ name }]);
+                if (error) throw error;
+            }
+            closeCompanyModal();
+            loadCompanies();
+        } catch (e) { console.error(e); alert('حدث خطأ'); }
+    });
+
+    loadCompanies();
+</script>

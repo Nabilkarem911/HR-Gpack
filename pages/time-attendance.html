@@ -1,0 +1,259 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-clock text-primary"></i>
+                الحضور والانصراف
+            </h2>
+            <p class="text-slate-500 mt-1">تسجيل حركات الدخول والخروج ومتابعة دوام الموظفين اليومي.</p>
+        </div>
+
+        <form id="attendance-form" class="p-6 overflow-y-auto flex gap-2 w-full md:w-auto mt-4 md:mt-0 items-center">
+            <select id="employee-select" required
+                class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary text-slate-700 min-w-48">
+                <option value="">-- اختر الموظف --</option>
+                <!-- Populated via JS -->
+            </select>
+            <button type="submit" id="btn-checkin"
+                class="bg-emerald-500 text-white px-5 py-2 rounded-lg shadow-sm hover:bg-emerald-600 transition-colors font-medium whitespace-nowrap">
+                <i class="fa-solid fa-sign-in-alt"></i> حضور
+            </button>
+            <button type="button" id="btn-checkout"
+                class="bg-amber-500 text-white px-5 py-2 rounded-lg shadow-sm hover:bg-amber-600 transition-colors font-medium whitespace-nowrap">
+                <i class="fa-solid fa-sign-out-alt"></i> انصراف
+            </button>
+        </form>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div id="attendance-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
+        <div class="ant-modal relative">
+            <div class="ant-modal-content">
+                <div class="ant-modal-header">
+                    <h3>تعديل سجل حضور</h3>
+                    <button onclick="document.getElementById('attendance-modal').classList.add('hidden')">
+                        <i class="fa-solid fa-times text-lg"></i>
+                    </button>
+                </div>
+                <div class="ant-modal-body">
+                    <p class="text-slate-500">هذه الشاشة تحت التطوير حالياً للتعديل اليدوي على السجلات...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Filters Area -->
+    <div
+        class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-wrap gap-4 items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="font-medium text-slate-700 flex items-center gap-2">
+                <i class="fa-regular fa-calendar-days text-primary"></i>
+                <span>سجل يوم:</span>
+                <input type="date" id="filter-date"
+                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-sm focus:outline-none focus:border-primary text-slate-700">
+            </div>
+            <select id="filter-att-company"
+                class="bg-slate-50 border border-slate-200 rounded-lg px-4 py-1 text-sm focus:outline-none focus:border-primary text-slate-700">
+                <option value="all">كل المنشآت</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-right" id="attendance-table">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-semibold">الموظف</th>
+                        <th class="px-6 py-4 font-semibold text-center">المنشأة</th>
+                        <th class="px-6 py-4 font-semibold text-center">وقت الحضور</th>
+                        <th class="px-6 py-4 font-semibold text-center">وقت الانصراف</th>
+                        <th class="px-6 py-4 font-semibold text-center">ساعات العمل</th>
+                        <th class="px-6 py-4 font-semibold text-center">الحالة</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm" id="attendance-tbody">
+                    <!-- Data will be loaded via JS script -->
+                    <tr>
+                        <td colspan="6" class="text-center py-10">
+                            <div
+                                class="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set default date to today
+    var dateInput = document.getElementById('filter-date');
+    var todayStr = new Date().toISOString().split('T')[0];
+    dateInput.value = todayStr;
+
+    // Load active employees into dropdown
+    async function loadConfigData() {
+        if (!window.db) return;
+
+        // 1. Load Employees for Dropdown forms
+        const select = document.getElementById('employee-select');
+        try {
+            const { data, error } = await window.db.from('employees').select('id, first_name, last_name, email, companies(name)').eq('status', 'active');
+            if (error) throw error;
+            data.forEach(emp => {
+                const opt = document.createElement('option');
+                opt.value = emp.id;
+                opt.textContent = `${emp.first_name} ${emp.last_name} (${emp.companies?.name || 'بدون منشأة'})`;
+                select.appendChild(opt);
+            });
+        } catch (e) { console.error(e); }
+
+        // 2. Load Companies for Filters
+        const compFilter = document.getElementById('filter-att-company');
+        try {
+            const { data } = await window.db.from('companies').select('id, name');
+            if (data) {
+                data.forEach(c => {
+                    compFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        } catch (e) { }
+    }
+
+    // Load Attendance for specified date
+    async function loadAttendance() {
+        if (!window.db) return;
+        const tbody = document.getElementById('attendance-tbody');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10"><div class="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div></td></tr>';
+
+        const selectedDate = dateInput.value;
+        const compFilter = document.getElementById('filter-att-company').value;
+
+        try {
+            // Join with employees table and companies
+            const { data, error } = await window.db
+                .from('attendance')
+                .select(`
+                    id, date, check_in, check_out, status,
+                    employees!inner (id, first_name, last_name, company_id, companies(name))
+                `)
+                .eq('date', selectedDate);
+
+            if (error) throw error;
+
+            let filteredData = data;
+            if (compFilter !== 'all') {
+                filteredData = data.filter(r => r.employees?.company_id == compFilter); // Use == for potential type coercion if compFilter is string and company_id is number
+            }
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 text-slate-500"><i class="fa-solid fa-moon text-4xl mb-3 text-slate-300 block"></i> لا يوجد سجلات حضور لهذا اليوم.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            filteredData.forEach(row => {
+                const checkInTime = row.check_in ? new Date(row.check_in).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '--';
+                const checkOutTime = row.check_out ? new Date(row.check_out).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '--';
+
+                let hoursWorked = '--';
+                if (row.check_in && row.check_out) {
+                    const diff = new Date(row.check_out) - new Date(row.check_in);
+                    const hours = (diff / (1000 * 60 * 60)).toFixed(1);
+                    hoursWorked = `${hours} س`;
+                }
+
+                let badge = '';
+                if (row.status === 'present') badge = '<span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">حاضر</span>';
+                else if (row.status === 'late') badge = '<span class="px-2 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">متأخر</span>';
+                else badge = `<span class="px-2 py-1 bg-slate-100 text-slate-800 rounded-full text-xs font-semibold">${row.status}</span>`;
+
+                html += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-6 py-4 font-medium text-slate-900">${row.employees?.first_name} ${row.employees?.last_name}</td>
+                        <td class="px-6 py-4 text-center text-sm font-bold text-amber-600">${row.employees?.companies?.name || '-'}</td>
+                        <td class="px-6 py-4 text-center font-mono text-emerald-600">${checkInTime}</td>
+                        <td class="px-6 py-4 text-center font-mono text-amber-600">${checkOutTime}</td>
+                        <td class="px-6 py-4 text-center">${hoursWorked}</td>
+                        <td class="px-6 py-4 text-center">${badge}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500 font-bold">حدث خطأ: ${e.message || JSON.stringify(e)}</td></tr>`;
+        }
+    }
+
+    // Handle Check-in
+    document.getElementById('attendance-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const empId = document.getElementById('employee-select').value;
+        if (!empId) return alert('يرجى اختيار موظف أولاً.');
+
+        try {
+            const now = new Date().toISOString();
+            const dateStr = now.split('T')[0];
+
+            // check if already checked in today
+            const { data: existing } = await window.db.from('attendance').select('id, check_in').eq('employee_id', empId).eq('date', dateStr).maybeSingle();
+
+            if (existing && existing.check_in) {
+                return alert('لقد قام هذا الموظف بتسجيل الحضور اليوم مسبقاً.');
+            }
+
+            const payload = {
+                employee_id: empId,
+                date: dateStr,
+                check_in: now,
+                status: 'present' // Or simple logic for 'late' based on time
+            };
+
+            const { error } = await window.db.from('attendance').insert([payload]);
+            if (error) throw error;
+
+            loadAttendance();
+            alert('تم تسجيل الدخول بنجاح.');
+        } catch (e) { console.error(e); alert('فشل التسجيل.'); }
+    });
+
+    // Handle Check-out
+    document.getElementById('btn-checkout').addEventListener('click', async () => {
+        const empId = document.getElementById('employee-select').value;
+        if (!empId) return alert('يرجى اختيار موظف أولاً.');
+
+        try {
+            const now = new Date().toISOString();
+            const dateStr = dateInput.value; // For checkout we use the active filter date, could be a night shift spanning over midnight
+
+            // Check if checked in today
+            const { data: existing, error: errExist } = await window.db.from('attendance').select('id, check_out').eq('employee_id', empId).eq('date', dateStr).maybeSingle();
+
+            if (errExist) throw errExist;
+            if (!existing) return alert('هذا الموظف لم يسجل حضور اليوم لنسجل له انصراف.');
+            if (existing.check_out) return alert('الموظف سجل انصراف مسبقاً.');
+
+            const { error } = await window.db.from('attendance').update({ check_out: now }).eq('id', existing.id);
+            if (error) throw error;
+
+            loadAttendance();
+            alert('تم تسجيل الانصراف بنجاح.');
+
+        } catch (e) { console.error(e); alert('فشل التسجيل.'); }
+    });
+
+    // Listen to filter changes
+    dateInput.addEventListener('change', loadAttendance);
+    document.getElementById('filter-att-company').addEventListener('change', loadAttendance);
+
+    // Initial load
+    loadConfigData();
+    loadAttendance();
+
+</script>

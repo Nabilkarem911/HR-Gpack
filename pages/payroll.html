@@ -1,0 +1,416 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+        <div class="relative z-10 w-full md:w-auto">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <i class="fa-solid fa-file-invoice-dollar text-primary"></i>
+                مسير الرواتب (Payroll Engine)
+            </h2>
+            <p class="text-slate-500 mt-1 max-w-xl">إصدار كشوفات رواتب دقيقة وديناميكية. بناءً على: الراتب الأساسي +
+                البدلات - الاستقطاعات - الغيابات - أقساط السلف.</p>
+        </div>
+
+        <div
+            class="flex flex-col sm:flex-row gap-3 relative z-10 w-full md:w-auto mt-4 md:mt-0 items-center justify-end">
+            <div class="flex gap-2 w-full sm:w-auto">
+                <select id="payroll-company"
+                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-700">
+                    <option value="all">كل المنشآت</option>
+                </select>
+                <select id="payroll-month"
+                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-700">
+                    <option value="1">يناير</option>
+                    <option value="2">فبراير</option>
+                    <option value="3">مارس</option>
+                    <option value="4">أبريل</option>
+                    <option value="5" selected>مايو</option>
+                    <option value="6">يونيو</option>
+                    <option value="7">يوليو</option>
+                    <option value="8">أغسطس</option>
+                    <option value="9">سبتمبر</option>
+                    <option value="10">أكتوبر</option>
+                    <option value="11">نوفمبر</option>
+                    <option value="12">ديسمبر</option>
+                </select>
+                <select id="payroll-year"
+                    class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary text-slate-700">
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                </select>
+            </div>
+
+            <button onclick="generatePayroll()" id="btn-generate-payroll"
+                class="w-full sm:w-auto bg-primary text-white px-5 py-2 rounded-lg shadow-sm hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 font-medium whitespace-nowrap">
+                <i class="fa-solid fa-calculator"></i> إصدار كشوفات الرواتب
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- System Settings & Rules summary -->
+        <div class="lg:col-span-1 space-y-4">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+                <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-3"><i
+                        class="fa-solid fa-cogs text-primary"></i> إعدادات مسير الرواتب</h3>
+
+                <div class="space-y-3">
+                    <!-- Rule 1 -->
+                    <div class="flex justify-between items-center text-sm p-2 bg-slate-50 rounded">
+                        <span class="text-slate-600">بدل السكن (عام)</span>
+                        <span class="font-bold text-emerald-600">+ 5%</span>
+                    </div>
+                    <!-- Rule 2 -->
+                    <div class="flex justify-between items-center text-sm p-2 bg-slate-50 rounded">
+                        <span class="text-slate-600">بدل تنقل (عام)</span>
+                        <span class="font-bold text-emerald-600">+ 300 ر.س</span>
+                    </div>
+                    <!-- Rule 3 -->
+                    <div class="flex justify-between items-center text-sm p-2 bg-slate-50 rounded">
+                        <span class="text-slate-600">تأمينات اجتماعية (عام)</span>
+                        <span class="font-bold text-red-500">- 10%</span>
+                    </div>
+                </div>
+
+                <button
+                    onclick="alert('شاشة إدارة قواعد الرواتب قيد التطوير وستسمح لك بإنشاء وتعديل بدلات واستقطاعات مخصصة للشركة أو لمجموعة موظفين.')"
+                    class="w-full mt-4 text-sm text-primary hover:text-blue-700 font-medium border border-primary/30 rounded-lg py-2 hover:bg-blue-50 transition-colors">
+                    <i class="fa-solid fa-sliders"></i> إدارة قواعد الرواتب
+                </button>
+            </div>
+
+            <div class="bg-blue-50 text-blue-800 rounded-xl p-4 text-sm font-medium border border-blue-100">
+                <p><i class="fa-solid fa-circle-info mb-2 text-primary text-lg"></i></p>
+                تتم عملية الحساب بالشكل التالي:
+                <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600">
+                    <li>الأساسي + البدلات</li>
+                    <li>تخصم الاستقطاعات الثابتة والنسبية</li>
+                    <li>يخصم غياب الموظفين عن الشهر</li>
+                    <li>تخصم أقساط السلف (إن وجدت ومقبولة)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Modal for Quick Rule Add -->
+        <div id="rule-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden overflow-y-auto">
+            <div class="ant-modal relative">
+                <div class="ant-modal-content">
+                    <div class="ant-modal-header">
+                        <h3>إضافة قاعدة جديدة</h3>
+                        <button onclick="document.getElementById('rule-modal').classList.add('hidden')">
+                            <i class="fa-solid fa-times text-lg"></i>
+                        </button>
+                    </div>
+                    <div class="ant-modal-body">
+                        <form class="space-y-4">
+                            <div>
+                                <label for="rule-name" class="block text-sm font-medium text-slate-700 mb-1">اسم
+                                    القاعدة</label>
+                                <input type="text" id="rule-name"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary"
+                                    placeholder="مثال: بدل سكن، خصم تأمينات">
+                            </div>
+                            <div>
+                                <label for="rule-type" class="block text-sm font-medium text-slate-700 mb-1">نوع
+                                    القاعدة</label>
+                                <select id="rule-type"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary">
+                                    <option value="allowance">بدل (إضافة)</option>
+                                    <option value="deduction">استقطاع (خصم)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="rule-value-type" class="block text-sm font-medium text-slate-700 mb-1">قيمة
+                                    القاعدة</label>
+                                <div class="flex gap-2">
+                                    <select id="rule-value-type"
+                                        class="w-1/3 border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary">
+                                        <option value="percentage">نسبة مئوية (%)</option>
+                                        <option value="fixed">مبلغ ثابت (ر.س)</option>
+                                    </select>
+                                    <input type="number" id="rule-value"
+                                        class="w-2/3 border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary"
+                                        placeholder="مثال: 5 أو 300">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="rule-applies-to" class="block text-sm font-medium text-slate-700 mb-1">تنطبق
+                                    على</label>
+                                <select id="rule-applies-to"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary">
+                                    <option value="all">جميع الموظفين</option>
+                                    <option value="company">منشأة محددة</option>
+                                    <option value="employee">موظف محدد</option>
+                                </select>
+                            </div>
+                            <div id="rule-target-company-div" class="hidden">
+                                <label for="rule-target-company"
+                                    class="block text-sm font-medium text-slate-700 mb-1">اختر
+                                    المنشأة</label>
+                                <select id="rule-target-company"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary">
+                                    <!-- Options loaded via JS -->
+                                </select>
+                            </div>
+                            <div id="rule-target-employee-div" class="hidden">
+                                <label for="rule-target-employee"
+                                    class="block text-sm font-medium text-slate-700 mb-1">اختر
+                                    الموظف</label>
+                                <select id="rule-target-employee"
+                                    class="w-full border-slate-300 rounded-lg shadow-sm focus:border-primary focus:ring-primary">
+                                    <!-- Options loaded via JS -->
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 shrink-0">
+                        <button
+                            class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                            onclick="document.getElementById('rule-modal').classList.add('hidden')">إلغاء</button>
+                        <button
+                            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors">حفظ
+                            القاعدة</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payslips Table Area -->
+            <div
+                class="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+                <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="font-bold text-slate-700">كشوفات رواتب موظفيك (المُصدرة)</h3>
+                    <div
+                        class="text-sm px-3 py-1 bg-white border border-slate-200 rounded-full font-mono text-slate-500">
+                        <span id="display-period">05 - 2026</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-right" id="payslips-table">
+                        <thead class="bg-white border-b border-slate-200 text-slate-500 text-sm">
+                            <tr>
+                                <th class="px-5 py-3 font-semibold">الموظف / المنشأة</th>
+                                <th class="px-5 py-3 font-semibold">الأساسي</th>
+                                <th class="px-5 py-3 font-semibold text-emerald-600">البدلات</th>
+                                <th class="px-5 py-3 font-semibold text-red-500">الاستقطاعات/غياب/سلف</th>
+                                <th class="px-5 py-3 font-semibold font-bold text-slate-800">الصافي (Net)</th>
+                                <th class="px-5 py-3 font-semibold text-center">الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm" id="payslips-tbody">
+                            <!-- Data loaded via JS -->
+                            <tr>
+                                <td colspan="6" class="text-center py-16">
+                                    <p class="text-slate-400 mb-2"><i class="fa-solid fa-receipt text-4xl mb-3"></i>
+                                    </p>
+                                    اختر
+                                    الشهر واضغط على "إصدار كشوفات الرواتب"
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set Current Month/Year based on date
+        var nDate = new Date();
+        document.getElementById('payroll-month').value = nDate.getMonth() + 1; // 1-12
+        document.getElementById('payroll-year').value = nDate.getFullYear();
+
+        // Fetch existing payslips for selected period
+        async function loadPayslips() {
+            if (!window.db) return;
+            const month = document.getElementById('payroll-month').value;
+            const year = document.getElementById('payroll-year').value;
+            const compFilter = document.getElementById('payroll-company').value;
+            const tbody = document.getElementById('payslips-tbody');
+            document.getElementById('display-period').innerText = `${month.padStart(2, '0')} - ${year}`;
+
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10"><div class="animate-spin inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full"></div></td></tr>';
+
+            try {
+                const { data, error } = await window.db
+                    .from('payslips')
+                    .select('*, employees!inner(first_name, last_name, company_id, companies(name))')
+                    .eq('month', month)
+                    .eq('year', year);
+
+                if (error) throw error;
+
+                let filteredData = data;
+                if (compFilter !== 'all') {
+                    filteredData = data.filter(r => r.employees?.company_id == compFilter);
+                }
+
+                if (filteredData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-16"><p class="text-slate-400 mb-2"><i class="fa-solid fa-receipt text-4xl mb-3"></i></p>لم يتم إصدار مسير رواتب لهذه المنشأة في هذا الشهر بعد.</td></tr>`;
+                    return;
+                }
+
+                let html = '';
+                filteredData.forEach(p => {
+                    const totalDeductions = parseFloat(p.total_deductions) + parseFloat(p.absences_deduction);
+
+                    let badge = p.status === 'draft'
+                        ? '<span class="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold">مسودة</span>'
+                        : '<span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold">مُعتمد</span>';
+
+                    html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-5 py-4">
+                            <div class="font-bold text-slate-800">${p.employees?.first_name} ${p.employees?.last_name}</div>
+                            <div class="text-xs text-amber-600 font-medium">${p.employees.companies.name}</div>
+                        </td>
+                        <td class="px-5 py-4 font-mono text-slate-600">${parseFloat(p.basic_salary).toFixed(2)}</td>
+                        <td class="px-5 py-4 font-mono text-emerald-600">+${parseFloat(p.total_allowances).toFixed(2)}</td>
+                        <td class="px-5 py-4 font-mono text-red-500">-${totalDeductions.toFixed(2)}</td>
+                        <td class="px-5 py-4 font-mono font-bold text-slate-900 border-r border-slate-100 bg-slate-50/50">${parseFloat(p.net_salary).toFixed(2)} <span class="text-[10px] text-slate-400 font-sans">ر.س</span></td>
+                        <td class="px-5 py-4 text-center">${badge}</td>
+                    </tr>
+                `;
+                });
+                tbody.innerHTML = html;
+
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-red-500 font-bold">حدث خطأ: ${e.message || JSON.stringify(e)}</td></tr>`;
+            }
+        }
+
+        // Dynamic Engine Logic (Simulation of Rule Engine since backend triggers can't be fully tested without actual SQL rules loaded)
+        window.generatePayroll = async function () {
+            const btn = document.getElementById('btn-generate-payroll');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الحساب...';
+            btn.disabled = true;
+
+            const month = parseInt(document.getElementById('payroll-month').value);
+            const year = parseInt(document.getElementById('payroll-year').value);
+            const compFilter = document.getElementById('payroll-company').value;
+
+            try {
+                // 1. Fetch all active employees
+                let query = window.db.from('employees').select('id, basic_salary, company_id').eq('status', 'active');
+                if (compFilter !== 'all') {
+                    query = query.eq('company_id', compFilter);
+                }
+
+                const { data: emps, error: errEmp } = await query;
+                if (errEmp) throw errEmp;
+
+                // 2. We use fixed Global rules for this demo (Can be swapped with fetching from payroll_rules table)
+                // Rule: Allowance (Housing 5%, Trans 300), Deduction (GOSI 10%)
+
+                // 3. Process each employee
+                const newPayslips = [];
+
+                for (let emp of emps) {
+                    let basic = parseFloat(emp.basic_salary) || 0;
+
+                    // Allowances
+                    let t_allow = (basic * 0.05) + 300; // 5% housing + 300 fixed
+
+                    // Deductions (fixed)
+                    let t_deduct = (basic * 0.10); // 10% GOSI
+
+                    // Fetch Approved Loans active deductions (simplification: any approved loan gets its monthly slice deducted, ideally we track remaining months in DB)
+                    const { data: loans } = await window.db.from('loans').select('monthly_deduction').eq('employee_id', emp.id).eq('status', 'approved');
+                    if (loans) {
+                        loans.forEach(l => t_deduct += parseFloat(l.monthly_deduction));
+                    }
+
+                    // Fetch Absences for this month (Absence deduction = (basic/30) * absent days)
+                    // For this demo, we assume 1 Day absent = basic/30
+                    const daysInMonth = new Date(year, month, 0).getDate();
+                    const startDateStr = `${year}-${String(month).padStart(2, '0')}-01`;
+                    const endDateStr = `${year}-${String(month).padStart(2, '0')}-${daysInMonth}`;
+
+                    const { count: absentCount } = await window.db.from('attendance')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('employee_id', emp.id)
+                        .eq('status', 'absent')
+                        .gte('date', startDateStr)
+                        .lte('date', endDateStr);
+
+                    let abs_ded = 0;
+                    if (absentCount && absentCount > 0) {
+                        abs_ded = (basic / 30) * absentCount;
+                    }
+
+                    // Formula Net = Basic + Allowances - Fixed Deductions - Absence
+                    let net = (basic + t_allow) - t_deduct - abs_ded;
+                    if (net < 0) net = 0;
+
+                    newPayslips.push({
+                        employee_id: emp.id,
+                        month: month,
+                        year: year,
+                        basic_salary: basic.toFixed(2),
+                        total_allowances: t_allow.toFixed(2),
+                        total_deductions: t_deduct.toFixed(2),
+                        absences_deduction: abs_ded.toFixed(2),
+                        net_salary: net.toFixed(2),
+                        status: 'draft'
+                    });
+                }
+
+                // 4. Save to Database (Upsert: replacing existing draft)
+                // In Supabase we use ON CONFLICT targeting unique constraint (employee_id, month, year)
+                // Because Free Tier JS Client upesert requires exact unique keys defined.
+                // We'll delete existing first for safety then insert.
+
+                if (newPayslips.length > 0) {
+                    // Delete existing for this month/year for the filtered company scope safely
+                    // Because we're fetching employee_ids, let's delete exactly those payslips
+                    const empIds = emps.map(e => e.id);
+                    // Free Tier constraints workaround for IN queries > 0: chunk or simple query
+                    if (empIds.length > 0) {
+                        await window.db.from('payslips').delete().eq('month', month).eq('year', year).in('employee_id', empIds);
+                    }
+
+                    // Insert new ones
+                    const { error: errIns } = await window.db.from('payslips').insert(newPayslips);
+                    if (errIns) throw errIns;
+
+                    alert('تم حساب مسير الرواتب وإصداره بنجاح.');
+                } else {
+                    alert('لا يوجد موظفين ليتم إصدار رواتب لهم في هذه المنشأة.');
+                }
+
+                loadPayslips();
+
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء معالجة الرواتب');
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-calculator"></i> إصدار كشوفات الرواتب';
+                btn.disabled = false;
+            }
+        }
+
+        // Setup Companies Filter
+        async function loadCompaniesFilter() {
+            if (!window.db) return;
+            const compFilter = document.getElementById('payroll-company');
+            try {
+                const { data } = await window.db.from('companies').select('id, name');
+                if (data) {
+                    data.forEach(c => {
+                        compFilter.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                    });
+                }
+            } catch (e) { }
+        }
+
+        // Attach listener to dropdowns
+        document.getElementById('payroll-month').addEventListener('change', loadPayslips);
+        document.getElementById('payroll-year').addEventListener('change', loadPayslips);
+        document.getElementById('payroll-company').addEventListener('change', loadPayslips);
+
+        // Initial table load
+        loadCompaniesFilter().then(() => loadPayslips());
+
+    </script>
