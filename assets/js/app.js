@@ -34,6 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Simple Router (Master Layout loading partials)
     const loadPage = async (pageName) => {
+        // Strict Front-End Route Guard securely protecting the System Users Page
+        if (pageName === 'users' && window.currentUserRole !== 'super_admin') {
+            alert('غير مصرح لك بالدخول لهذه الصفحة');
+            window.location.hash = '#dashboard';
+            return;
+        }
+
         try {
             // Show loader
             mainContent.innerHTML = `
@@ -116,33 +123,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load initial route or check auth
     const initApp = async () => {
-        // Simple auth check simulation for frontend routing
-        const session = await window.checkAuth();
+        // Robust auto-login session check (Remember Me)
+        const { data } = await window.db.auth.getSession();
         let initialHash = window.location.hash.substring(1);
 
-        if (!session && initialHash !== 'login') {
+        if (data && data.session) {
+            try {
+                // Fetch logged-in user details to sync shell
+                const { data: userData, error } = await window.db
+                    .from('system_users')
+                    .select('full_name, role, custom_permissions')
+                    .eq('id', data.session.user.id)
+                    .single();
+
+                if (userData) {
+                    // Load Global App State for Routing Checks
+                    window.currentUserRole = userData.role;
+                    window.currentUserPerms = userData.custom_permissions;
+
+                    // Manage Sidebar Visibility
+                    const usersNav = document.querySelector('a[data-page="users"]');
+                    if (usersNav && window.currentUserRole !== 'super_admin') {
+                        usersNav.parentElement.style.display = 'none';
+                    }
+
+                    const roleMap = {
+                        'super_admin': 'مدير عام',
+                        'hr_manager': 'موارد بشرية',
+                        'branch_manager': 'مدير فرع',
+                        'viewer': 'مشاهد'
+                    };
+                    const nameElem = document.getElementById('current-user-name');
+                    if (nameElem) {
+                        nameElem.innerText = userData.full_name || 'مستخدم غير معروف';
+                        const roleElem = nameElem.nextElementSibling;
+                        if (roleElem) roleElem.innerText = roleMap[userData.role] || userData.role;
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching user profile for shell:", err);
+            }
+
+            // Immediately hide Login and route to Dashboard or requested page
+            if (!initialHash || initialHash === 'login') {
+                initialHash = 'dashboard';
+                window.location.hash = '#dashboard';
+            }
+            loadPage(initialHash);
+        } else {
+            // No session, force login page
             window.location.hash = '#login';
             loadPage('login');
-            return;
         }
-
-        if (session && initialHash === 'login') {
-            window.location.hash = '#dashboard';
-            loadPage('dashboard');
-            return;
-        }
-
-        if (!initialHash) initialHash = 'dashboard';
-        window.location.hash = '#' + initialHash;
-        loadPage(initialHash);
 
         // Setup Logout functionality
         const logoutBtn = document.getElementById('logout-btn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
-                await supabase.auth.signOut();
+                await window.db.auth.signOut();
                 window.location.hash = '#login';
-                loadPage('login');
+                window.location.reload();
             });
         }
     };

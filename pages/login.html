@@ -31,12 +31,12 @@
 
         <form id="login-form" class="space-y-5">
             <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">البريد الإلكتروني</label>
+                <label class="block text-sm font-medium text-slate-700 mb-1">البريد الإلكتروني أو رقم الجوال</label>
                 <div class="relative">
-                    <i class="fa-regular fa-envelope absolute left-4 top-3 text-slate-400"></i>
-                    <input type="email" id="login-email" required
+                    <i class="fa-regular fa-user absolute left-4 top-3 text-slate-400"></i>
+                    <input type="text" id="login-identifier" required
                         class="w-full border border-slate-200 rounded-xl px-4 py-2.5 pl-10 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-left"
-                        dir="ltr" placeholder="admin@example.com">
+                        dir="ltr" placeholder="admin@example.com أو 05XXXXXXXX">
                 </div>
             </div>
 
@@ -65,12 +65,7 @@
             </button>
         </form>
 
-        <!-- Only for Demo Purpose -->
-        <div class="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-100 text-amber-800 text-xs text-center">
-            <i class="fa-solid fa-circle-info mb-1 block text-base"></i>
-            للتجربة، يمكنك التسجيل لأول مرة وسيقوم النظام بإنشاء الحساب فوراً إذا لم يكن موجوداً (بناءً على إعدادات
-            Supabase).
-        </div>
+
     </div>
 </div>
 
@@ -78,7 +73,7 @@
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('btn-login-submit');
-        const email = document.getElementById('login-email').value;
+        const identifier = document.getElementById('login-identifier').value.trim();
         const pass = document.getElementById('login-password').value;
         const originalHtml = btn.innerHTML;
 
@@ -86,34 +81,29 @@
         btn.disabled = true;
 
         try {
-            // Attempt Sign In
+            let loginEmail = identifier;
+
+            // If it doesn't contain '@', assume it's a phone number and map it to an email
+            if (!identifier.includes('@')) {
+                const { data: emailData, error: rpcError } = await window.db.rpc('get_email_by_phone', { p_phone: identifier });
+
+                if (rpcError) throw rpcError;
+
+                if (emailData) {
+                    loginEmail = emailData;
+                } else {
+                    throw new Error("رقم الجوال غير مسجل في النظام");
+                }
+            }
+
+            // Attempt Sign In using the resolved email
             let { data, error } = await window.db.auth.signInWithPassword({
-                email: email,
+                email: loginEmail,
                 password: pass
             });
 
-            // If error and message is invalid credentials, let's try to Sign Up (For demo convenience)
-            if (error && error.message.includes("Invalid login")) {
-                const confirmSignUp = confirm("هذا الحساب غير موجود. هل تود إنشاء حساب جديد بهذه البيانات كمدير تجريبي لتسجيل الدخول؟");
-                if (confirmSignUp) {
-                    const { data: signUpData, error: signUpError } = await window.db.auth.signUp({
-                        email: email,
-                        password: pass
-                    });
-
-                    if (signUpError) throw signUpError;
-
-                    if (signUpData.user) {
-                        alert("تم إنشاء حسابك! يرجى الاستمرار كمسؤول.");
-                        data = signUpData;
-                        error = null;
-                    } else {
-                        throw new Error("يرجى مراجعة البريد لتفعيل الحساب (إذا كان إعداد تفعيل البريد مفعلاً في Supabase)");
-                    }
-                } else {
-                    throw error;
-                }
-            } else if (error) {
+            if (error) {
+                alert("البريد الإلكتروني أو كلمة المرور غير صحيحة");
                 throw error;
             }
 
@@ -127,7 +117,13 @@
 
         } catch (error) {
             console.error(error);
-            alert(error.message || "فشل تسجيل الدخول");
+            const msg = error.message || "فشل تسجيل الدخول";
+            // Check native invalid credentials message from Supabase to translate it
+            if (msg.includes("Invalid login")) {
+                alert("بيانات الدخول غير صحيحة");
+            } else {
+                alert(msg);
+            }
             btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
