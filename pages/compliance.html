@@ -166,15 +166,16 @@
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">نوع الوثيقة <span
                                 class="text-red-500">*</span></label>
-                        <select id="doc-type" required
-                            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm appearance-none bg-slate-50 text-slate-700">
-                            <option value="">-- اختر النوع --</option>
-                            <option value="إقامة">هوية مقيم / إقامة</option>
-                            <option value="جواز سفر">جواز سفر</option>
-                            <option value="تأمين طبي">تأمين طبي</option>
-                            <option value="رخصة قيادة">رخصة قيادة</option>
-                            <option value="شهادة صحية">شهادة صحية</option>
-                        </select>
+                        <input list="doc-types-list" id="doc-type" required
+                            class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm text-right"
+                            placeholder="اختر أو اكتب نوع الوثيقة...">
+                        <datalist id="doc-types-list">
+                            <option value="إقامة">
+                            <option value="جواز سفر">
+                            <option value="تأمين طبي">
+                            <option value="رخصة قيادة">
+                            <option value="شهادة صحية">
+                        </datalist>
                     </div>
 
                     <!-- Doc Number -->
@@ -206,6 +207,76 @@
                     <button type="submit" id="btn-submit-doc"
                         class="px-5 py-2.5 rounded-xl bg-primary hover:bg-blue-600 text-white font-medium shadow-sm transition-colors flex items-center gap-2">
                         <i class="fa-solid fa-save"></i> <span>حفظ الوثيقة</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Renew Modal -->
+<div id="renew-modal" class="fixed inset-0 z-[100] hidden">
+    <!-- Overlay -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0" id="renew-modal-overlay"
+        onclick="closeRenewModal()"></div>
+
+    <!-- Modal Content -->
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-md w-full scale-95 opacity-0 z-[101]"
+            id="renew-modal-content">
+
+            <!-- Header -->
+            <div
+                class="bg-gradient-to-l from-emerald-500 to-teal-600 px-6 py-4 flex items-center justify-between text-white">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> <span>تجديد الوثيقة السريع</span>
+                </h3>
+                <button type="button" onclick="closeRenewModal()"
+                    class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-lg w-8 h-8 flex items-center justify-center">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="renew-form" class="p-6 space-y-5">
+                <input type="hidden" id="renew-doc-id">
+
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-2">
+                    <p class="text-sm text-slate-500 mb-1">تاريخ الانتهاء الحالي:</p>
+                    <p class="font-bold text-slate-800 font-mono" id="renew-current-date">--/--/----</p>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-slate-700">تمديد سريع (إضافة أشهر):</label>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button type="button" onclick="applyQuickRenew(3)"
+                            class="py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-500 hover:text-white transition-colors focus:ring-2 focus:ring-emerald-400 focus:outline-none">+
+                            3 أشهر</button>
+                        <button type="button" onclick="applyQuickRenew(6)"
+                            class="py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-500 hover:text-white transition-colors focus:ring-2 focus:ring-emerald-400 focus:outline-none">+
+                            6 أشهر</button>
+                        <button type="button" onclick="applyQuickRenew(12)"
+                            class="py-2 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold hover:bg-emerald-500 hover:text-white transition-colors focus:ring-2 focus:ring-emerald-400 focus:outline-none">+
+                            سنة</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">تاريخ الانتهاء الجديد <span
+                            class="text-red-500">*</span></label>
+                    <input type="date" id="renew-new-date" required
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm font-mono tracking-wider">
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeRenewModal()"
+                        class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium transition-colors">
+                        إلغاء
+                    </button>
+                    <button type="submit" id="btn-submit-renew"
+                        class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-medium shadow-sm transition-colors flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i> <span>حفظ التجديد</span>
                     </button>
                 </div>
             </form>
@@ -277,27 +348,32 @@
 
     async function loadEmployees() {
         try {
-            let q = window.db.from('employees').select('id, name_ar, company_id').eq('status', 'active');
-
-            // Respect RBAC
-            if (window.currentUserCompanyId) {
-                q = q.eq('company_id', window.currentUserCompanyId);
-            } else if (document.getElementById('filter-company').value) {
-                q = q.eq('company_id', document.getElementById('filter-company').value);
-            }
+            // Robust employee fetch, even if docs are empty
+            let q = window.db.from('employees').select('id, first_name, last_name, company_id').eq('status', 'active');
 
             const { data, error } = await q;
             if (error) throw error;
 
             globalEmpList = data || [];
 
+            // Apply RBAC filters locally to UI dropdown to ensure it never crashes
+            let filteredEmps = globalEmpList;
+            if (window.currentUserCompanyId) {
+                filteredEmps = globalEmpList.filter(e => e.company_id === window.currentUserCompanyId);
+            } else if (document.getElementById('filter-company').value) {
+                filteredEmps = globalEmpList.filter(e => e.company_id === document.getElementById('filter-company').value);
+            }
+
             const empSelect = document.getElementById('doc-emp-id');
             empSelect.innerHTML = '<option value="">-- اختر الموظف --</option>';
-            globalEmpList.forEach(e => {
+            filteredEmps.forEach(e => {
+                const empName = e.name_ar || (`${e.first_name || ''} ${e.last_name || ''}`).trim() || 'بدون اسم';
                 const compName = globalCompaniesDict[e.company_id] ? ` - ${globalCompaniesDict[e.company_id]}` : '';
-                empSelect.innerHTML += `<option value="${e.id}">${e.name_ar}${compName}</option>`;
+                empSelect.innerHTML += `<option value="${e.id}">${empName}${compName}</option>`;
             });
-        } catch (e) { console.error("Error loading employees:", e); }
+        } catch (e) {
+            console.error("Error loading employees:", e);
+        }
     }
 
     // 4. Load Core Documents
@@ -306,34 +382,29 @@
         tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400"><i class="fa-solid fa-spinner fa-spin text-2xl mb-2"></i><p>جاري تحديث البيانات...</p></td></tr>`;
 
         try {
-            // Build Query
+            // Build Query robustly avoiding postgrest specific internal joins that crash on empty
             let query = window.db.from('employee_documents')
-                .select(`
-                    id, 
-                    document_type, 
-                    document_number, 
-                    expiry_date,
-                    emp_id,
-                    employees!inner ( name_ar, company_id ) 
-                `);
+                .select(`*, employees ( id, first_name, last_name, company_id )`);
 
-            // Apply Company Filter & RBAC
-            const selectedCompany = document.getElementById('filter-company').value;
-            const enforceId = window.currentUserCompanyId || selectedCompany;
-            if (enforceId) {
-                query = query.eq('employees.company_id', enforceId);
-            }
-
-            // Apply Doc Type Filter
+            // Apply Doc Type Filter natively
             const typeFilter = document.getElementById('filter-type').value;
             if (typeFilter) {
-                query = query.eq('document_type', typeFilter);
+                query = query.eq('doc_type', typeFilter);
             }
 
             const { data, error } = await query;
             if (error) throw error;
 
-            globalDocsList = data || [];
+            let records = data || [];
+
+            // Execute local JS filtering for RBAC to guarantee no Postgres relationship join breaks
+            const selectedCompany = document.getElementById('filter-company').value;
+            const enforceId = window.currentUserCompanyId || selectedCompany;
+            if (enforceId) {
+                records = records.filter(d => d.employees && d.employees.company_id == enforceId);
+            }
+
+            globalDocsList = records;
 
             // Execute Traffic Light Logic & Sorting BEFORE Rendering
             const todayDate = new Date();
@@ -381,7 +452,9 @@
 
             let html = '';
             enrichedDocs.forEach(d => {
-                const compName = globalCompaniesDict[d.employees.company_id] || 'غير محدد';
+                const rawEmpName = d.employees ? (`${d.employees.first_name || ''} ${d.employees.last_name || ''}`.trim() || 'غير محدد') : 'موظف غير معروف';
+                const compId = d.employees ? d.employees.company_id : null;
+                const compName = globalCompaniesDict[compId] || 'المنشأة غير محددة';
 
                 // Traffic Light styling
                 let badgeClass = 'bg-emerald-100 text-emerald-700 border-emerald-200';
@@ -404,11 +477,11 @@
                 html += `
                     <tr class="hover:bg-slate-50 transition-colors group">
                         <td class="p-4">
-                            <p class="font-bold text-slate-800">${d.employees.name_ar}</p>
+                            <p class="font-bold text-slate-800">${rawEmpName}</p>
                             <p class="text-xs text-slate-500 mt-0.5"><i class="fa-solid fa-building ml-1 text-slate-400"></i>${compName}</p>
                         </td>
-                        <td class="p-4 font-semibold text-slate-700">${d.document_type}</td>
-                        <td class="p-4 font-mono text-slate-600 tracking-wide">${d.document_number}</td>
+                        <td class="p-4 font-semibold text-slate-700">${d.doc_type}</td>
+                        <td class="p-4 font-mono text-slate-600 tracking-wide">${d.doc_number}</td>
                         <td class="p-4 text-slate-600">${d.expiry_date}</td>
                         <td class="p-4 text-center ${daysColor}">${d.diffDays} يوم</td>
                         <td class="p-4 text-center">
@@ -418,10 +491,13 @@
                         </td>
                         <td class="p-4 text-center">
                             <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick="editDoc('${d.id}')" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors flex items-center justify-center" title="تعديل">
+                                <button onclick="openRenewModal('${d.id}', '${d.expiry_date}')" class="px-2 py-1 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-colors flex items-center justify-center font-bold text-xs gap-1 shadow-sm border border-blue-100" title="تجديد سريع">
+                                    <i class="fa-solid fa-rotate"></i> تجديد
+                                </button>
+                                <button onclick="editDoc('${d.id}')" class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors flex items-center justify-center border border-emerald-100" title="تعديل">
                                     <i class="fa-solid fa-pen text-sm"></i>
                                 </button>
-                                <button onclick="deleteDoc('${d.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-colors flex items-center justify-center" title="حذف">
+                                <button onclick="deleteDoc('${d.id}')" class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-colors flex items-center justify-center border border-rose-100" title="حذف">
                                     <i class="fa-solid fa-trash text-sm"></i>
                                 </button>
                             </div>
@@ -440,6 +516,8 @@
 
     // 5. Modal Logic
     function openDocModal() {
+        document.body.appendChild(document.getElementById('doc-modal'));
+
         // Reset form
         document.getElementById('doc-form').reset();
         document.getElementById('doc-id').value = '';
@@ -482,9 +560,9 @@
 
         const recordId = document.getElementById('doc-id').value;
         const payload = {
-            emp_id: document.getElementById('doc-emp-id').value,
-            document_type: document.getElementById('doc-type').value,
-            document_number: document.getElementById('doc-number').value,
+            employee_id: document.getElementById('doc-emp-id').value,
+            doc_type: document.getElementById('doc-type').value,
+            doc_number: document.getElementById('doc-number').value,
             expiry_date: document.getElementById('doc-expiry').value
         };
 
@@ -521,9 +599,9 @@
         openDocModal();
         document.getElementById('doc-modal-title').innerHTML = '<i class="fa-solid fa-pen"></i> <span>تعديل بيانات الوثيقة</span>';
         document.getElementById('doc-id').value = doc.id;
-        document.getElementById('doc-emp-id').value = doc.emp_id;
-        document.getElementById('doc-type').value = doc.document_type;
-        document.getElementById('doc-number').value = doc.document_number;
+        document.getElementById('doc-emp-id').value = doc.employee_id;
+        document.getElementById('doc-type').value = doc.doc_type;
+        document.getElementById('doc-number').value = doc.doc_number;
         document.getElementById('doc-expiry').value = doc.expiry_date;
     }
 
@@ -539,6 +617,78 @@
             alert("فشل الحذف. يرجى المحاولة لاحقاً.");
         }
     }
+
+    // --- Quick Renewal Logic ---
+    function openRenewModal(docId, currentDate) {
+        document.body.appendChild(document.getElementById('renew-modal'));
+
+        document.getElementById('renew-form').reset();
+        document.getElementById('renew-doc-id').value = docId;
+        document.getElementById('renew-current-date').innerText = currentDate;
+
+        // Default new date to the current date just in case
+        document.getElementById('renew-new-date').value = currentDate;
+
+        const modal = document.getElementById('renew-modal');
+        const overlay = document.getElementById('renew-modal-overlay');
+        const content = document.getElementById('renew-modal-content');
+
+        modal.classList.remove('hidden');
+        void modal.offsetWidth;
+        overlay.classList.remove('opacity-0');
+        content.classList.remove('opacity-0', 'scale-95');
+    }
+
+    function closeRenewModal() {
+        const overlay = document.getElementById('renew-modal-overlay');
+        const content = document.getElementById('renew-modal-content');
+        overlay.classList.add('opacity-0');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            document.getElementById('renew-modal').classList.add('hidden');
+        }, 300);
+    }
+
+    function applyQuickRenew(monthsToAdd) {
+        const currentStr = document.getElementById('renew-current-date').innerText;
+        if (!currentStr || currentStr === '--/--/----') return;
+
+        const dateObj = new Date(currentStr);
+        // Add months safely handling year rollovers
+        dateObj.setMonth(dateObj.getMonth() + monthsToAdd);
+
+        // Format to YYYY-MM-DD for the input[type=date]
+        const finalDateStr = dateObj.toISOString().split('T')[0];
+        document.getElementById('renew-new-date').value = finalDateStr;
+    }
+
+    document.getElementById('renew-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btn-submit-renew');
+        const ogHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> تحديث...';
+        btn.disabled = true;
+
+        const recordId = document.getElementById('renew-doc-id').value;
+        const newExpiry = document.getElementById('renew-new-date').value;
+
+        try {
+            const { error } = await window.db.from('employee_documents')
+                .update({ expiry_date: newExpiry })
+                .eq('id', recordId);
+
+            if (error) throw error;
+
+            closeRenewModal();
+            loadDocuments();
+        } catch (error) {
+            console.error(error);
+            alert("حدث خطأ أثناء حفظ التجديد السريع.");
+        } finally {
+            btn.innerHTML = ogHtml;
+            btn.disabled = false;
+        }
+    });
 
     // Boot
     initCompliance();
